@@ -133,8 +133,13 @@ export async function POST(req: NextRequest) {
 
     if (!engineRes.ok) {
       const errData = await engineRes.json().catch(() => ({}));
+      const detailedMessage =
+        errData.detail ||
+        errData.error ||
+        errData.message ||
+        `Gagal menjalankan perhitungan di mesin Python (HTTP ${engineRes.status}).`;
       return NextResponse.json(
-        { error: errData.detail || "Gagal menjalankan perhitungan di mesin Python." },
+        { error: detailedMessage, detail: detailedMessage },
         { status: engineRes.status }
       );
     }

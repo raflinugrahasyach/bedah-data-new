@@ -283,13 +283,15 @@ export function AnalysisWorkbench({
 
       const data = await res.json();
       if (!res.ok) {
-        setExecutionError(data.error || "Gagal menjalankan analisis.");
+        // Expose exact backend detail error message if available
+        const errorDetail = data.detail || data.error || data.message || "Gagal menjalankan analisis.";
+        setExecutionError(errorDetail);
       } else {
         setAnalysisResult(data.result);
         setLastAnalysisId(data.analysisId);
       }
     } catch (err: any) {
-      setExecutionError(`Koneksi terputus: ${err.message}`);
+      setExecutionError(`Koneksi terputus ke backend statistik: ${err.message}`);
     } finally {
       setIsExecuting(false);
     }

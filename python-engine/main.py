@@ -1,12 +1,14 @@
 import os
 import io
+import re
 import urllib.request
 import base64
 import math
 from typing import List, Optional, Dict, Any, Union
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from scipy import stats
@@ -20,6 +22,19 @@ app = FastAPI(
     description="Python statistical microservice powering Bedah Data research platform.",
     version="1.0.0",
 )
+
+# Global unhandled exception handler to always return detailed JSON
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+    return JSONResponse(
+        status_code=400,
+        content={"detail": f"Kesalahan komputasi statistik: {str(exc)}"},
+    )
 
 # CORS configuration
 app.add_middleware(
@@ -174,9 +189,61 @@ def read_dataset_file(file_path_or_url: str, sheet_name: Optional[str] = None) -
     df.columns = [str(col).strip() for col in df.columns]
     return df
 
+def coerce_numeric_series(s: pd.Series) -> pd.Series:
+    """
+    Forcefully cleans and coerces a pandas Series into numeric float.
+    Handles Indonesian/European/US currencies, comma/dot separators,
+    percentages, and formatted financial numbers (e.g. JISDOR USD/IDR).
+    """
+    if pd.api.types.is_numeric_dtype(s):
+        return pd.to_numeric(s, errors="coerce")
+
+    def parse_item(val: Any) -> float:
+        if pd.isna(val) or val is None:
+            return float("nan")
+        if isinstance(val, (int, float, np.number)):
+            return float(val)
+
+        val_str = str(val).strip()
+        if not val_str or val_str.lower() in ["nan", "null", "none", "-", "", "n/a", "na", "#n/a", "#value!"]:
+            return float("nan")
+
+        # Strip everything except digits, minus, plus, dot, and comma
+        cleaned = re.sub(r"[^\d.,\-+]", "", val_str)
+        if not cleaned or cleaned in ["+", "-", ".", ",", "+.", "-.", "+,", "-,"]:
+            return float("nan")
+
+        # Handle combinations of dots and commas
+        if "." in cleaned and "," in cleaned:
+            # Check which symbol appears last
+            if cleaned.rfind(",") > cleaned.rfind("."):
+                # Indonesian/European: 15.420,50 -> 15420.50
+                cleaned = cleaned.replace(".", "").replace(",", ".")
+            else:
+                # US format: 15,420.50 -> 15420.50
+                cleaned = cleaned.replace(",", "")
+        elif "," in cleaned:
+            # Single comma or multiple commas
+            if cleaned.count(",") > 1:
+                cleaned = cleaned.replace(",", "")
+            else:
+                # Indonesian decimal e.g. 15420,50 -> 15420.50
+                cleaned = cleaned.replace(",", ".")
+        elif "." in cleaned:
+            # Multiple dots e.g. 1.500.000 -> 1500000
+            if cleaned.count(".") > 1:
+                cleaned = cleaned.replace(".", "")
+
+        try:
+            return float(cleaned)
+        except Exception:
+            return float("nan")
+
+    return s.apply(parse_item)
+
 def clean_series(s: pd.Series, dropna: bool = True) -> pd.Series:
-    """Coerces numeric values and optionally drops NaNs."""
-    clean = pd.to_numeric(s, errors="coerce")
+    """Coerces numeric values using coerce_numeric_series and optionally drops NaNs."""
+    clean = coerce_numeric_series(s)
     if dropna:
         clean = clean.dropna()
     return clean
@@ -249,655 +316,774 @@ def health_check():
 # 1. Modul Statistik Deskriptif
 @app.post("/api/stats/descriptive")
 def calculate_descriptive(req: DescriptiveRequest):
-    df = read_dataset_file(req.get_source(), req.sheet_name)
-    selected_vars = req.variables if req.variables else df.columns.tolist()
+    try:
+        df = read_dataset_file(req.get_source(), req.sheet_name)
+        selected_vars = req.variables if req.variables else df.columns.tolist()
 
-    numeric_results = []
-    categorical_results = []
+        numeric_results = []
+        categorical_results = []
 
-    for col in selected_vars:
-        if col not in df.columns:
-            continue
-
-        series = df[col]
-        # Check if numeric
-        num_s = pd.to_numeric(series, errors="coerce")
-        valid_num_count = num_s.notna().sum()
-
-        if valid_num_count > len(series) * 0.5:
-            # Treat as numeric
-            valid = num_s.dropna()
-            n = len(valid)
-            if n == 0:
+        for col in selected_vars:
+            if col not in df.columns:
                 continue
 
-            mean = safe_float(valid.mean())
-            median = safe_float(valid.median())
-            mode_vals = valid.mode()
-            mode = safe_float(mode_vals.iloc[0]) if not mode_vals.empty else None
-            std = safe_float(valid.std(ddof=1)) if n > 1 else 0.0
-            variance = safe_float(valid.var(ddof=1)) if n > 1 else 0.0
-            min_val = safe_float(valid.min())
-            max_val = safe_float(valid.max())
-            val_range = safe_float(max_val - min_val) if (min_val is not None and max_val is not None) else None
-            q1 = safe_float(valid.quantile(0.25))
-            q2 = safe_float(valid.quantile(0.50))
-            q3 = safe_float(valid.quantile(0.75))
-            iqr = safe_float(q3 - q1) if (q3 is not None and q1 is not None) else None
-            skewness = safe_float(valid.skew()) if n > 2 else None
-            kurtosis = safe_float(valid.kurtosis()) if n > 3 else None
+            series = df[col]
+            # Coerce with robust numeric cleaner
+            num_s = coerce_numeric_series(series)
+            valid_num_count = num_s.notna().sum()
 
-            numeric_results.append({
-                "variable": col,
-                "n": n,
-                "missing": int(series.isna().sum()),
-                "mean": mean,
-                "median": median,
-                "mode": mode,
-                "std": std,
-                "variance": variance,
-                "min": min_val,
-                "max": max_val,
-                "range": val_range,
-                "q1": q1,
-                "q2": q2,
-                "q3": q3,
-                "iqr": iqr,
-                "skewness": skewness,
-                "kurtosis": kurtosis,
-            })
-        else:
-            # Treat as categorical
-            counts = series.value_counts(dropna=False)
-            freqs = []
-            total = len(series)
-            for val, cnt in counts.items():
-                freqs.append({
-                    "label": "Missing" if pd.isna(val) else str(val),
-                    "count": int(cnt),
-                    "percentage": round(float(cnt / total * 100), 2) if total > 0 else 0,
+            if valid_num_count > len(series) * 0.4 and valid_num_count >= 2:
+                # Treat as numeric
+                valid = num_s.dropna()
+                n = len(valid)
+                if n == 0:
+                    continue
+
+                mean = safe_float(valid.mean())
+                median = safe_float(valid.median())
+                mode_vals = valid.mode()
+                mode = safe_float(mode_vals.iloc[0]) if not mode_vals.empty else None
+                std = safe_float(valid.std(ddof=1)) if n > 1 else 0.0
+                variance = safe_float(valid.var(ddof=1)) if n > 1 else 0.0
+                min_val = safe_float(valid.min())
+                max_val = safe_float(valid.max())
+                val_range = safe_float(max_val - min_val) if (min_val is not None and max_val is not None) else None
+                q1 = safe_float(valid.quantile(0.25))
+                q2 = safe_float(valid.quantile(0.50))
+                q3 = safe_float(valid.quantile(0.75))
+                iqr = safe_float(q3 - q1) if (q3 is not None and q1 is not None) else None
+                skewness = safe_float(valid.skew()) if n > 2 else None
+                kurtosis = safe_float(valid.kurtosis()) if n > 3 else None
+
+                numeric_results.append({
+                    "variable": col,
+                    "n": n,
+                    "missing": int(series.isna().sum()) + int(len(series) - valid_num_count),
+                    "mean": mean,
+                    "median": median,
+                    "mode": mode,
+                    "std": std,
+                    "variance": variance,
+                    "min": min_val,
+                    "max": max_val,
+                    "range": val_range,
+                    "q1": q1,
+                    "q2": q2,
+                    "q3": q3,
+                    "iqr": iqr,
+                    "skewness": skewness,
+                    "kurtosis": kurtosis,
                 })
-            categorical_results.append({
-                "variable": col,
-                "n": total,
-                "unique": int(series.nunique()),
-                "frequencies": freqs,
-            })
+            else:
+                # Treat as categorical
+                counts = series.value_counts(dropna=False)
+                freqs = []
+                total = len(series)
+                for val, cnt in counts.items():
+                    freqs.append({
+                        "label": "Missing" if pd.isna(val) else str(val),
+                        "count": int(cnt),
+                        "percentage": round(float(cnt / total * 100), 2) if total > 0 else 0,
+                    })
+                categorical_results.append({
+                    "variable": col,
+                    "n": total,
+                    "unique": int(series.nunique()),
+                    "frequencies": freqs,
+                })
 
-    # Summary text
-    summary_text = (
-        f"Analisis deskriptif berhasil dihitung untuk {len(numeric_results)} variabel numerik "
-        f"dan {len(categorical_results)} variabel kategorik dengan total {len(df)} baris observasi."
-    )
+        summary_text = (
+            f"Analisis deskriptif berhasil dihitung untuk {len(numeric_results)} variabel numerik "
+            f"dan {len(categorical_results)} variabel kategorik dengan total {len(df)} baris observasi."
+        )
 
-    return {
-        "status": "success",
-        "row_count": len(df),
-        "column_count": len(df.columns),
-        "numeric": numeric_results,
-        "categorical": categorical_results,
-        "summary": summary_text,
-    }
+        return {
+            "status": "success",
+            "row_count": len(df),
+            "column_count": len(df.columns),
+            "numeric": numeric_results,
+            "categorical": categorical_results,
+            "summary": summary_text,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Gagal menghitung statistik deskriptif: {str(e)}")
 
 # 2. Modul Korelasi Pearson
 @app.post("/api/stats/correlation")
 def calculate_correlation(req: CorrelationRequest):
-    df = read_dataset_file(req.get_source(), req.sheet_name)
-    cols = [c for c in req.variables if c in df.columns]
+    try:
+        df = read_dataset_file(req.get_source(), req.sheet_name)
+        cols = [c for c in req.variables if c in df.columns]
 
-    if len(cols) < 2:
-        raise HTTPException(status_code=400, detail="Minimal 2 variabel dibutuhkan untuk analisis korelasi.")
+        if len(cols) < 2:
+            raise HTTPException(status_code=400, detail="Minimal 2 variabel dibutuhkan untuk analisis korelasi.")
 
-    sub_df = df[cols].apply(pd.to_numeric, errors="coerce").dropna()
-    n = len(sub_df)
-    if n < 3:
-        raise HTTPException(status_code=400, detail="Jumlah observasi valid terlalu sedikit (minimal 3 observasi).")
+        # Clean all selected columns with coerce_numeric_series
+        clean_dict = {col: coerce_numeric_series(df[col]) for col in cols}
+        sub_df = pd.DataFrame(clean_dict).dropna()
+        n = len(sub_df)
+        if n < 3:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Jumlah baris data numerik valid terlalu sedikit (hanya {n} baris). Pastikan kolom yang dipilih berisi angka valid."
+            )
 
-    r_matrix = []
-    p_matrix = []
+        # Variance check
+        for col in cols:
+            if sub_df[col].std() == 0 or pd.isna(sub_df[col].std()):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Variabel '{col}' tidak memiliki variasi nilai (konstan/varians 0). Korelasi tidak dapat dihitung."
+                )
 
-    for i, col1 in enumerate(cols):
-        r_row = []
-        p_row = []
-        for j, col2 in enumerate(cols):
-            if i == j:
-                r_row.append(1.0)
-                p_row.append(0.0)
-            else:
-                if req.method == "spearman":
-                    res = stats.spearmanr(sub_df[col1], sub_df[col2])
+        r_matrix = []
+        p_matrix = []
+
+        for i, col1 in enumerate(cols):
+            r_row = []
+            p_row = []
+            for j, col2 in enumerate(cols):
+                if i == j:
+                    r_row.append(1.0)
+                    p_row.append(0.0)
                 else:
-                    res = stats.pearsonr(sub_df[col1], sub_df[col2])
-                r_row.append(safe_float(res.statistic))
-                p_row.append(safe_float(res.pvalue))
-        r_matrix.append(r_row)
-        p_matrix.append(p_row)
+                    if req.method == "spearman":
+                        res = stats.spearmanr(sub_df[col1], sub_df[col2])
+                    else:
+                        res = stats.pearsonr(sub_df[col1], sub_df[col2])
+                    r_row.append(safe_float(res.statistic))
+                    p_row.append(safe_float(res.pvalue))
+            r_matrix.append(r_row)
+            p_matrix.append(p_row)
 
-    # Interpret pairs
-    pair_insights = []
-    for i in range(len(cols)):
-        for j in range(i + 1, len(cols)):
-            r = r_matrix[i][j]
-            p = p_matrix[i][j]
-            abs_r = abs(r) if r is not None else 0
-            if abs_r >= 0.8:
-                strength = "Sangat Kuat"
-            elif abs_r >= 0.6:
-                strength = "Kuat"
-            elif abs_r >= 0.4:
-                strength = "Sedang"
-            elif abs_r >= 0.2:
-                strength = "Rendah"
-            else:
-                strength = "Sangat Rendah"
+        pair_insights = []
+        for i in range(len(cols)):
+            for j in range(i + 1, len(cols)):
+                r = r_matrix[i][j]
+                p = p_matrix[i][j]
+                abs_r = abs(r) if r is not None else 0
+                if abs_r >= 0.8:
+                    strength = "Sangat Kuat"
+                elif abs_r >= 0.6:
+                    strength = "Kuat"
+                elif abs_r >= 0.4:
+                    strength = "Sedang"
+                elif abs_r >= 0.2:
+                    strength = "Rendah"
+                else:
+                    strength = "Sangat Rendah"
 
-            direction = "Positif" if (r is not None and r >= 0) else "Negatif"
-            sig = "Signifikan (p < 0.05)" if (p is not None and p < 0.05) else "Tidak Signifikan (p >= 0.05)"
+                direction = "Positif" if (r is not None and r >= 0) else "Negatif"
+                sig = "Signifikan (p < 0.05)" if (p is not None and p < 0.05) else "Tidak Signifikan (p >= 0.05)"
 
-            pair_insights.append({
-                "pair": f"{cols[i]} & {cols[j]}",
-                "r": r,
-                "p": p,
-                "direction": direction,
-                "strength": strength,
-                "significance": sig,
-            })
+                pair_insights.append({
+                    "pair": f"{cols[i]} & {cols[j]}",
+                    "r": r,
+                    "p": p,
+                    "direction": direction,
+                    "strength": strength,
+                    "significance": sig,
+                })
 
-    return {
-        "status": "success",
-        "variables": cols,
-        "n": n,
-        "r_matrix": r_matrix,
-        "p_matrix": p_matrix,
-        "pair_insights": pair_insights,
-    }
-
+        return {
+            "status": "success",
+            "variables": cols,
+            "n": n,
+            "r_matrix": r_matrix,
+            "p_matrix": p_matrix,
+            "pair_insights": pair_insights,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Gagal menghitung korelasi: {str(e)}")
 # 3. Modul Uji Validitas Kuesioner (Pearson Item-Total)
 @app.post("/api/stats/validity")
 def calculate_validity(req: ValidityRequest):
-    df = read_dataset_file(req.get_source(), req.sheet_name)
-    items = [c for c in req.item_vars if c in df.columns]
+    try:
+        df = read_dataset_file(req.get_source(), req.sheet_name)
+        items = [c for c in req.item_vars if c in df.columns]
 
-    if len(items) < 2:
-        raise HTTPException(status_code=400, detail="Minimal 2 butir kuesioner dibutuhkan.")
+        if len(items) < 2:
+            raise HTTPException(status_code=400, detail="Minimal 2 butir kuesioner dibutuhkan.")
 
-    clean_df = df[items].apply(pd.to_numeric, errors="coerce").dropna()
-    n = len(clean_df)
-    if n < 4:
-        raise HTTPException(status_code=400, detail="Jumlah responden valid minimal 4 untuk uji validitas.")
+        clean_dict = {item: coerce_numeric_series(df[item]) for item in items}
+        clean_df = pd.DataFrame(clean_dict).dropna()
+        n = len(clean_df)
+        if n < 4:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Jumlah responden valid minimal 4 untuk uji validitas (ditemukan {n} baris valid)."
+            )
 
-    # Calculate total score if not provided
-    if req.total_var and req.total_var in df.columns:
-        total_score = pd.to_numeric(df.loc[clean_df.index, req.total_var], errors="coerce")
-    else:
-        total_score = clean_df.sum(axis=1)
+        # Calculate total score if not provided
+        if req.total_var and req.total_var in df.columns:
+            total_score = coerce_numeric_series(df.loc[clean_df.index, req.total_var])
+        else:
+            total_score = clean_df.sum(axis=1)
 
-    df_degrees = n - 2
-    # R table cutoff using two-tailed t distribution: r = t / sqrt(df + t^2)
-    t_crit = stats.t.ppf(1 - (req.alpha / 2), df_degrees)
-    r_table = float(t_crit / math.sqrt(df_degrees + (t_crit ** 2)))
+        # Check total variance
+        if total_score.std() == 0 or pd.isna(total_score.std()):
+            raise HTTPException(
+                status_code=400,
+                detail="Skor total responden tidak memiliki variasi (konstan). Uji validitas tidak dapat dihitung."
+            )
 
-    results = []
-    valid_count = 0
+        df_degrees = n - 2
+        t_crit = stats.t.ppf(1 - (req.alpha / 2), df_degrees)
+        r_table = float(t_crit / math.sqrt(df_degrees + (t_crit ** 2)))
 
-    for item in items:
-        res = stats.pearsonr(clean_df[item], total_score)
-        r_calc = safe_float(res.statistic)
-        p_val = safe_float(res.pvalue)
+        results = []
+        valid_count = 0
 
-        # Item is valid if r_calc > r_table and p_val < 0.05
-        is_valid = bool(r_calc is not None and r_calc > r_table and (p_val is not None and p_val < req.alpha))
-        if is_valid:
-            valid_count += 1
+        for item in items:
+            if clean_df[item].std() == 0 or pd.isna(clean_df[item].std()):
+                results.append({
+                    "item": item,
+                    "r_hitung": 0.0,
+                    "r_tabel": round(r_table, 4),
+                    "p_value": 1.0,
+                    "is_valid": False,
+                    "status": "Tidak Valid (Konstan)",
+                })
+                continue
 
-        results.append({
-            "item": item,
-            "r_hitung": r_calc,
-            "r_tabel": round(r_table, 4),
-            "p_value": p_val,
-            "is_valid": is_valid,
-            "status": "Valid" if is_valid else "Tidak Valid",
-        })
+            res = stats.pearsonr(clean_df[item], total_score)
+            r_calc = safe_float(res.statistic)
+            p_val = safe_float(res.pvalue)
 
-    return {
-        "status": "success",
-        "n": n,
-        "df": df_degrees,
-        "r_table": round(r_table, 4),
-        "alpha": req.alpha,
-        "total_items": len(items),
-        "valid_items_count": valid_count,
-        "results": results,
-    }
+            is_valid = bool(r_calc is not None and r_calc > r_table and (p_val is not None and p_val < req.alpha))
+            if is_valid:
+                valid_count += 1
+
+            results.append({
+                "item": item,
+                "r_hitung": r_calc,
+                "r_tabel": round(r_table, 4),
+                "p_value": p_val,
+                "is_valid": is_valid,
+                "status": "Valid" if is_valid else "Tidak Valid",
+            })
+
+        return {
+            "status": "success",
+            "n": n,
+            "df": df_degrees,
+            "r_table": round(r_table, 4),
+            "alpha": req.alpha,
+            "total_items": len(items),
+            "valid_items_count": valid_count,
+            "results": results,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Gagal menghitung uji validitas: {str(e)}")
 
 # 4. Modul Uji Reliabilitas (Cronbach's Alpha)
 @app.post("/api/stats/reliability")
 def calculate_reliability(req: ReliabilityRequest):
-    df = read_dataset_file(req.get_source(), req.sheet_name)
-    items = [c for c in req.item_vars if c in df.columns]
+    try:
+        df = read_dataset_file(req.get_source(), req.sheet_name)
+        items = [c for c in req.item_vars if c in df.columns]
 
-    if len(items) < 2:
-        raise HTTPException(status_code=400, detail="Minimal 2 butir untuk uji reliabilitas.")
+        if len(items) < 2:
+            raise HTTPException(status_code=400, detail="Minimal 2 butir untuk uji reliabilitas.")
 
-    clean_df = df[items].apply(pd.to_numeric, errors="coerce").dropna()
-    n = len(clean_df)
-    k = len(items)
+        clean_dict = {item: coerce_numeric_series(df[item]) for item in items}
+        clean_df = pd.DataFrame(clean_dict).dropna()
+        n = len(clean_df)
+        k = len(items)
 
-    if n < 4:
-        raise HTTPException(status_code=400, detail="Responden valid terlalu sedikit (minimal 4).")
+        if n < 4:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Jumlah responden valid minimal 4 untuk uji reliabilitas (ditemukan {n} baris valid)."
+            )
 
-    # Formula Cronbach's Alpha: a = (k / (k - 1)) * (1 - sum(var_item) / var_total)
-    item_variances = clean_df.var(axis=0, ddof=1)
-    sum_item_var = item_variances.sum()
-    total_scores = clean_df.sum(axis=1)
-    total_var = total_scores.var(ddof=1)
+        item_variances = clean_df.var(axis=0, ddof=1)
+        sum_item_var = item_variances.sum()
+        total_scores = clean_df.sum(axis=1)
+        total_var = total_scores.var(ddof=1)
 
-    if total_var == 0:
-        overall_alpha = 0.0
-    else:
+        if total_var == 0 or pd.isna(total_var):
+            raise HTTPException(
+                status_code=400,
+                detail="Skor total butir instrumen tidak memiliki variasi (varians 0)."
+            )
+
         overall_alpha = (k / (k - 1)) * (1.0 - (sum_item_var / total_var))
-    overall_alpha = safe_float(overall_alpha)
+        overall_alpha = safe_float(overall_alpha)
 
-    # Alpha if item deleted
-    items_deleted = []
-    recommended_to_drop = []
+        items_deleted = []
+        recommended_to_drop = []
 
-    for item in items:
-        dropped_df = clean_df.drop(columns=[item])
-        k_sub = k - 1
-        sub_item_var = dropped_df.var(axis=0, ddof=1).sum()
-        sub_total_var = dropped_df.sum(axis=1).var(ddof=1)
+        for item in items:
+            dropped_df = clean_df.drop(columns=[item])
+            k_sub = k - 1
+            sub_item_var = dropped_df.var(axis=0, ddof=1).sum()
+            sub_total_var = dropped_df.sum(axis=1).var(ddof=1)
 
-        if sub_total_var == 0:
-            sub_alpha = 0.0
-        else:
-            sub_alpha = (k_sub / (k_sub - 1)) * (1.0 - (sub_item_var / sub_total_var))
-        sub_alpha = safe_float(sub_alpha)
+            if sub_total_var == 0:
+                sub_alpha = 0.0
+            else:
+                sub_alpha = (k_sub / (k_sub - 1)) * (1.0 - (sub_item_var / sub_total_var))
+            sub_alpha = safe_float(sub_alpha)
 
-        # Corrected Item-Total correlation
-        item_total_corr = stats.pearsonr(clean_df[item], dropped_df.sum(axis=1)).statistic
+            if clean_df[item].std() == 0 or dropped_df.sum(axis=1).std() == 0:
+                item_total_corr = 0.0
+            else:
+                item_total_corr = stats.pearsonr(clean_df[item], dropped_df.sum(axis=1)).statistic
 
-        if overall_alpha is not None and sub_alpha is not None and sub_alpha > (overall_alpha + 0.03):
-            recommended_to_drop.append(item)
+            if overall_alpha is not None and sub_alpha is not None and sub_alpha > (overall_alpha + 0.03):
+                recommended_to_drop.append(item)
 
-        items_deleted.append({
-            "item": item,
-            "alpha_if_deleted": round(sub_alpha, 4) if sub_alpha is not None else None,
-            "corrected_item_total_correlation": round(safe_float(item_total_corr) or 0.0, 4),
-        })
+            items_deleted.append({
+                "item": item,
+                "alpha_if_deleted": round(sub_alpha, 4) if sub_alpha is not None else None,
+                "corrected_item_total_correlation": round(safe_float(item_total_corr) or 0.0, 4),
+            })
 
-    is_reliable = bool(overall_alpha is not None and overall_alpha >= 0.70)
+        is_reliable = bool(overall_alpha is not None and overall_alpha >= 0.70)
 
-    return {
-        "status": "success",
-        "n": n,
-        "items_count": k,
-        "cronbach_alpha": round(overall_alpha, 4) if overall_alpha is not None else None,
-        "is_reliable": is_reliable,
-        "benchmark": 0.70,
-        "interpretation": "Instrumen reliabel (Alpha >= 0.70)" if is_reliable else "Instrumen kurang reliabel (Alpha < 0.70)",
-        "alpha_if_item_deleted": items_deleted,
-        "recommended_to_drop": recommended_to_drop,
-    }
-
+        return {
+            "status": "success",
+            "n": n,
+            "items_count": k,
+            "cronbach_alpha": round(overall_alpha, 4) if overall_alpha is not None else None,
+            "is_reliable": is_reliable,
+            "benchmark": 0.70,
+            "interpretation": "Instrumen reliabel (Alpha >= 0.70)" if is_reliable else "Instrumen kurang reliabel (Alpha < 0.70)",
+            "alpha_if_item_deleted": items_deleted,
+            "recommended_to_drop": recommended_to_drop,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Gagal menghitung uji reliabilitas: {str(e)}")
 # 5. Modul Regresi Linier Sederhana
 @app.post("/api/stats/regression/simple")
 def calculate_simple_regression(req: RegressionSimpleRequest):
-    df = read_dataset_file(req.get_source(), req.sheet_name)
-    if req.x_var not in df.columns or req.y_var not in df.columns:
-        raise HTTPException(status_code=400, detail="Variabel X atau Y tidak ditemukan di dataset.")
+    try:
+        df = read_dataset_file(req.get_source(), req.sheet_name)
+        if req.x_var not in df.columns:
+            raise HTTPException(status_code=400, detail=f"Variabel prediktor (X) '{req.x_var}' tidak ditemukan di dataset.")
+        if req.y_var not in df.columns:
+            raise HTTPException(status_code=400, detail=f"Variabel terikat (Y) '{req.y_var}' tidak ditemukan di dataset.")
 
-    sub_df = df[[req.x_var, req.y_var]].apply(pd.to_numeric, errors="coerce").dropna()
-    n = len(sub_df)
-    if n < 5:
-        raise HTTPException(status_code=400, detail="Observasi valid minimal 5 untuk regresi.")
+        # Clean X and Y forcefully with coerce_numeric_series
+        x_clean = coerce_numeric_series(df[req.x_var])
+        y_clean = coerce_numeric_series(df[req.y_var])
 
-    X = sm.add_constant(sub_df[req.x_var])
-    y = sub_df[req.y_var]
+        clean_df = pd.DataFrame({req.x_var: x_clean, req.y_var: y_clean}).dropna()
+        n = len(clean_df)
+        if n < 5:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Jumlah observasi numerik valid terlalu sedikit (hanya {n} baris). Regresi membutuhkan minimal 5 data observasi tanpa teks/kosong."
+            )
 
-    model = sm.OLS(y, X).fit()
+        # Check for zero variance
+        if clean_df[req.x_var].std() == 0 or pd.isna(clean_df[req.x_var].std()):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Variabel bebas '{req.x_var}' tidak bervariasi (seluruh nilai sama/konstan). Regresi tidak dapat dijalankan."
+            )
+        if clean_df[req.y_var].std() == 0 or pd.isna(clean_df[req.y_var].std()):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Variabel terikat '{req.y_var}' tidak bervariasi (seluruh nilai sama/konstan). Regresi tidak dapat dijalankan."
+            )
 
-    const_b = safe_float(model.params.iloc[0])
-    const_se = safe_float(model.bse.iloc[0])
-    const_t = safe_float(model.tvalues.iloc[0])
-    const_p = safe_float(model.pvalues.iloc[0])
+        X = sm.add_constant(clean_df[req.x_var])
+        y = clean_df[req.y_var]
 
-    slope_b = safe_float(model.params.iloc[1])
-    slope_se = safe_float(model.bse.iloc[1])
-    slope_t = safe_float(model.tvalues.iloc[1])
-    slope_p = safe_float(model.pvalues.iloc[1])
+        model = sm.OLS(y, X).fit()
 
-    r_val = math.sqrt(model.rsquared) if model.rsquared >= 0 else 0.0
+        const_b = safe_float(model.params.iloc[0])
+        const_se = safe_float(model.bse.iloc[0])
+        const_t = safe_float(model.tvalues.iloc[0])
+        const_p = safe_float(model.pvalues.iloc[0])
 
-    coefficients = [
-        {
-            "term": "(Constant)",
-            "b": const_b,
-            "std_error": const_se,
-            "t": const_t,
-            "p_value": const_p,
-            "ci_lower": safe_float(model.conf_int().iloc[0, 0]),
-            "ci_upper": safe_float(model.conf_int().iloc[0, 1]),
-        },
-        {
-            "term": req.x_var,
-            "b": slope_b,
-            "std_error": slope_se,
-            "t": slope_t,
-            "p_value": slope_p,
-            "ci_lower": safe_float(model.conf_int().iloc[1, 0]),
-            "ci_upper": safe_float(model.conf_int().iloc[1, 1]),
-        },
-    ]
+        slope_b = safe_float(model.params.iloc[1])
+        slope_se = safe_float(model.bse.iloc[1])
+        slope_t = safe_float(model.tvalues.iloc[1])
+        slope_p = safe_float(model.pvalues.iloc[1])
 
-    # ANOVA table
-    df_reg = int(model.df_model)
-    df_res = int(model.df_resid)
-    ss_reg = safe_float(model.ess)
-    ss_res = safe_float(model.ssr)
-    ss_tot = safe_float(model.centered_tss)
-    ms_reg = safe_float(model.mse_model)
-    ms_res = safe_float(model.mse_resid)
+        r_val = math.sqrt(max(0, model.rsquared)) if model.rsquared is not None else 0.0
 
-    anova = {
-        "df_regression": df_reg,
-        "df_residual": df_res,
-        "df_total": df_reg + df_res,
-        "ss_regression": ss_reg,
-        "ss_residual": ss_res,
-        "ss_total": ss_tot,
-        "ms_regression": ms_reg,
-        "ms_residual": ms_res,
-        "f_stat": safe_float(model.fvalue),
-        "p_value": safe_float(model.f_pvalue),
-    }
+        coefficients = [
+            {
+                "term": "(Constant)",
+                "b": const_b,
+                "std_error": const_se,
+                "t": const_t,
+                "p_value": const_p,
+                "ci_lower": safe_float(model.conf_int().iloc[0, 0]),
+                "ci_upper": safe_float(model.conf_int().iloc[0, 1]),
+            },
+            {
+                "term": req.x_var,
+                "b": slope_b,
+                "std_error": slope_se,
+                "t": slope_t,
+                "p_value": slope_p,
+                "ci_lower": safe_float(model.conf_int().iloc[1, 0]),
+                "ci_upper": safe_float(model.conf_int().iloc[1, 1]),
+            },
+        ]
 
-    # Equation
-    sign = "+" if (slope_b or 0) >= 0 else "-"
-    equation = f"{req.y_var} = {round(const_b or 0, 4)} {sign} {abs(round(slope_b or 0, 4))} * {req.x_var}"
+        # ANOVA table
+        df_reg = int(model.df_model)
+        df_res = int(model.df_resid)
+        ss_reg = safe_float(model.ess)
+        ss_res = safe_float(model.ssr)
+        ss_tot = safe_float(model.centered_tss)
+        ms_reg = safe_float(model.mse_model)
+        ms_res = safe_float(model.mse_resid)
 
-    # Interpretation
-    is_sig = (slope_p or 1.0) < 0.05
-    dir_word = "positif" if (slope_b or 0) > 0 else "negatif"
-    pct_explained = round((model.rsquared or 0) * 100, 2)
-    interpretation = (
-        f"Variabel {req.x_var} berpengaruh {dir_word} dan "
-        f"{'signifikan' if is_sig else 'tidak signifikan'} terhadap {req.y_var} "
-        f"(t = {round(slope_t or 0, 3)}, p = {round(slope_p or 0, 4)}). "
-        f"{req.x_var} mampu menjelaskan {pct_explained}% variasi dari {req.y_var} (R² = {round(model.rsquared or 0, 4)})."
-    )
+        anova = {
+            "df_regression": df_reg,
+            "df_residual": df_res,
+            "df_total": df_reg + df_res,
+            "ss_regression": ss_reg,
+            "ss_residual": ss_res,
+            "ss_total": ss_tot,
+            "ms_regression": ms_reg,
+            "ms_residual": ms_res,
+            "f_stat": safe_float(model.fvalue),
+            "p_value": safe_float(model.f_pvalue),
+        }
 
-    return {
-        "status": "success",
-        "n": n,
-        "x_var": req.x_var,
-        "y_var": req.y_var,
-        "equation": equation,
-        "r": round(r_val, 4),
-        "r_squared": round(model.rsquared, 4),
-        "adj_r_squared": round(model.rsquared_adj, 4),
-        "f_stat": round(model.fvalue, 4) if model.fvalue is not None else None,
-        "f_pvalue": safe_float(model.f_pvalue),
-        "std_error_estimate": safe_float(math.sqrt(model.mse_resid)),
-        "coefficients": coefficients,
-        "anova": anova,
-        "interpretation": interpretation,
-    }
+        # Equation
+        sign = "+" if (slope_b or 0) >= 0 else "-"
+        equation = f"{req.y_var} = {round(const_b or 0, 4)} {sign} {abs(round(slope_b or 0, 4))} * {req.x_var}"
+
+        # Interpretation
+        is_sig = (slope_p or 1.0) < 0.05
+        dir_word = "positif" if (slope_b or 0) > 0 else "negatif"
+        pct_explained = round((model.rsquared or 0) * 100, 2)
+        interpretation = (
+            f"Variabel {req.x_var} berpengaruh {dir_word} dan "
+            f"{'signifikan' if is_sig else 'tidak signifikan'} terhadap {req.y_var} "
+            f"(t = {round(slope_t or 0, 3)}, p = {round(slope_p or 0, 4)}). "
+            f"{req.x_var} mampu menjelaskan {pct_explained}% variasi dari {req.y_var} (R² = {round(model.rsquared or 0, 4)})."
+        )
+
+        return {
+            "status": "success",
+            "n": n,
+            "x_var": req.x_var,
+            "y_var": req.y_var,
+            "equation": equation,
+            "r": round(r_val, 4),
+            "r_squared": round(model.rsquared, 4) if model.rsquared is not None else None,
+            "adj_r_squared": round(model.rsquared_adj, 4) if model.rsquared_adj is not None else None,
+            "f_stat": round(model.fvalue, 4) if model.fvalue is not None else None,
+            "f_pvalue": safe_float(model.f_pvalue),
+            "std_error_estimate": safe_float(math.sqrt(model.mse_resid)) if model.mse_resid is not None else None,
+            "coefficients": coefficients,
+            "anova": anova,
+            "interpretation": interpretation,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Gagal menghitung regresi sederhana: {str(e)}")
 
 # 6. Modul Regresi Linier Berganda
 @app.post("/api/stats/regression/multiple")
 def calculate_multiple_regression(req: RegressionMultipleRequest):
-    df = read_dataset_file(req.get_source(), req.sheet_name)
-    all_vars = req.x_vars + [req.y_var]
-    for v in all_vars:
-        if v not in df.columns:
-            raise HTTPException(status_code=400, detail=f"Variabel '{v}' tidak ditemukan di dataset.")
+    try:
+        df = read_dataset_file(req.get_source(), req.sheet_name)
+        all_vars = req.x_vars + [req.y_var]
+        for v in all_vars:
+            if v not in df.columns:
+                raise HTTPException(status_code=400, detail=f"Variabel '{v}' tidak ditemukan di dataset.")
 
-    sub_df = df[all_vars].apply(pd.to_numeric, errors="coerce").dropna()
-    n = len(sub_df)
-    k = len(req.x_vars)
-    if n <= k + 2:
-        raise HTTPException(status_code=400, detail=f"Jumlah observasi ({n}) harus lebih besar dari jumlah variabel bebas + 2.")
+        clean_dict = {v: coerce_numeric_series(df[v]) for v in all_vars}
+        sub_df = pd.DataFrame(clean_dict).dropna()
+        n = len(sub_df)
+        k = len(req.x_vars)
+        if n <= k + 2:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Jumlah observasi numerik valid ({n}) harus lebih besar dari jumlah variabel bebas ({k}) + 2."
+            )
 
-    X = sm.add_constant(sub_df[req.x_vars])
-    y = sub_df[req.y_var]
+        # Variance check
+        for v in all_vars:
+            if sub_df[v].std() == 0 or pd.isna(sub_df[v].std()):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Variabel '{v}' tidak memiliki variasi nilai (konstan/varians 0). Regresi tidak dapat dihitung."
+                )
 
-    model = sm.OLS(y, X).fit()
+        X = sm.add_constant(sub_df[req.x_vars])
+        y = sub_df[req.y_var]
 
-    # Standardized Beta calculation: beta_i = b_i * (std_X / std_Y)
-    y_std = y.std(ddof=1)
-    coefficients = []
+        model = sm.OLS(y, X).fit()
 
-    # Constant
-    coefficients.append({
-        "term": "(Constant)",
-        "b": safe_float(model.params.iloc[0]),
-        "std_error": safe_float(model.bse.iloc[0]),
-        "beta": None,
-        "t": safe_float(model.tvalues.iloc[0]),
-        "p_value": safe_float(model.pvalues.iloc[0]),
-        "vif": None,
-        "tolerance": None,
-    })
+        y_std = y.std(ddof=1)
+        coefficients = []
 
-    # Predictors with VIF
-    for idx, var in enumerate(req.x_vars, start=1):
-        x_std = sub_df[var].std(ddof=1)
-        b_val = model.params.iloc[idx]
-        beta_val = (b_val * x_std / y_std) if y_std > 0 else 0.0
-
-        # Calculate VIF for var
-        try:
-            vif_val = variance_inflation_factor(X.values, idx)
-            tol_val = 1.0 / vif_val if vif_val > 0 else 1.0
-        except Exception:
-            vif_val = 1.0
-            tol_val = 1.0
-
+        # Constant
         coefficients.append({
-            "term": var,
-            "b": safe_float(b_val),
-            "std_error": safe_float(model.bse.iloc[idx]),
-            "beta": safe_float(beta_val),
-            "t": safe_float(model.tvalues.iloc[idx]),
-            "p_value": safe_float(model.pvalues.iloc[idx]),
-            "vif": round(float(vif_val), 3) if not np.isinf(vif_val) else 999.0,
-            "tolerance": round(float(tol_val), 3),
+            "term": "(Constant)",
+            "b": safe_float(model.params.iloc[0]),
+            "std_error": safe_float(model.bse.iloc[0]),
+            "beta": None,
+            "t": safe_float(model.tvalues.iloc[0]),
+            "p_value": safe_float(model.pvalues.iloc[0]),
+            "vif": None,
+            "tolerance": None,
         })
 
-    # ANOVA table
-    df_reg = int(model.df_model)
-    df_res = int(model.df_resid)
-    anova = {
-        "df_regression": df_reg,
-        "df_residual": df_res,
-        "df_total": df_reg + df_res,
-        "ss_regression": safe_float(model.ess),
-        "ss_residual": safe_float(model.ssr),
-        "ss_total": safe_float(model.centered_tss),
-        "ms_regression": safe_float(model.mse_model),
-        "ms_residual": safe_float(model.mse_resid),
-        "f_stat": safe_float(model.fvalue),
-        "p_value": safe_float(model.f_pvalue),
-    }
+        # Predictors with VIF
+        for idx, var in enumerate(req.x_vars, start=1):
+            x_std = sub_df[var].std(ddof=1)
+            b_val = model.params.iloc[idx]
+            beta_val = (b_val * x_std / y_std) if y_std > 0 else 0.0
 
-    return {
-        "status": "success",
-        "n": n,
-        "x_vars": req.x_vars,
-        "y_var": req.y_var,
-        "r": round(math.sqrt(max(0, model.rsquared)), 4),
-        "r_squared": round(model.rsquared, 4),
-        "adj_r_squared": round(model.rsquared_adj, 4),
-        "f_stat": round(model.fvalue, 4) if model.fvalue is not None else None,
-        "f_pvalue": safe_float(model.f_pvalue),
-        "coefficients": coefficients,
-        "anova": anova,
-    }
+            try:
+                vif_val = variance_inflation_factor(X.values, idx)
+                tol_val = 1.0 / vif_val if vif_val > 0 else 1.0
+            except Exception:
+                vif_val = 1.0
+                tol_val = 1.0
+
+            coefficients.append({
+                "term": var,
+                "b": safe_float(b_val),
+                "std_error": safe_float(model.bse.iloc[idx]),
+                "beta": safe_float(beta_val),
+                "t": safe_float(model.tvalues.iloc[idx]),
+                "p_value": safe_float(model.pvalues.iloc[idx]),
+                "vif": round(float(vif_val), 3) if not np.isinf(vif_val) else 999.0,
+                "tolerance": round(float(tol_val), 3),
+            })
+
+        df_reg = int(model.df_model)
+        df_res = int(model.df_resid)
+        anova = {
+            "df_regression": df_reg,
+            "df_residual": df_res,
+            "df_total": df_reg + df_res,
+            "ss_regression": safe_float(model.ess),
+            "ss_residual": safe_float(model.ssr),
+            "ss_total": safe_float(model.centered_tss),
+            "ms_regression": safe_float(model.mse_model),
+            "ms_residual": safe_float(model.mse_resid),
+            "f_stat": safe_float(model.fvalue),
+            "p_value": safe_float(model.f_pvalue),
+        }
+
+        return {
+            "status": "success",
+            "n": n,
+            "x_vars": req.x_vars,
+            "y_var": req.y_var,
+            "r": round(math.sqrt(max(0, model.rsquared)), 4),
+            "r_squared": round(model.rsquared, 4),
+            "adj_r_squared": round(model.rsquared_adj, 4),
+            "f_stat": round(model.fvalue, 4) if model.fvalue is not None else None,
+            "f_pvalue": safe_float(model.f_pvalue),
+            "coefficients": coefficients,
+            "anova": anova,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Gagal menghitung regresi berganda: {str(e)}")
 
 # 7. Modul Uji Asumsi Klasik
 @app.post("/api/stats/assumptions")
 def calculate_assumptions(req: AssumptionsRequest):
-    df = read_dataset_file(req.get_source(), req.sheet_name)
-    all_vars = req.x_vars + [req.y_var]
-    sub_df = df[all_vars].apply(pd.to_numeric, errors="coerce").dropna()
-    n = len(sub_df)
-
-    if n < 8:
-        raise HTTPException(status_code=400, detail="Minimal 8 observasi untuk uji asumsi klasik.")
-
-    X = sm.add_constant(sub_df[req.x_vars])
-    y = sub_df[req.y_var]
-    model = sm.OLS(y, X).fit()
-    residuals = model.resid
-
-    # 1. Normalitas Residual (Shapiro-Wilk)
-    shapiro_w, shapiro_p = stats.shapiro(residuals)
-    is_normal = bool(shapiro_p >= 0.05)
-
-    # 2. Heteroskedastisitas (Breusch-Pagan)
     try:
-        bp_lm, bp_pvalue, _, _ = het_breuschpagan(residuals, X)
-        is_homoscedastic = bool(bp_pvalue >= 0.05)
-    except Exception:
-        bp_lm, bp_pvalue = 0.0, 1.0
-        is_homoscedastic = True
+        df = read_dataset_file(req.get_source(), req.sheet_name)
+        all_vars = req.x_vars + [req.y_var]
+        for v in all_vars:
+            if v not in df.columns:
+                raise HTTPException(status_code=400, detail=f"Variabel '{v}' tidak ditemukan di dataset.")
 
-    # 3. Autokorelasi (Durbin-Watson)
-    dw_stat = float(durbin_watson(residuals))
-    # Standard rule of thumb: 1.5 to 2.5 means no strong autocorrelation
-    no_autocorr = bool(1.5 <= dw_stat <= 2.5)
+        clean_dict = {v: coerce_numeric_series(df[v]) for v in all_vars}
+        sub_df = pd.DataFrame(clean_dict).dropna()
+        n = len(sub_df)
 
-    # 4. Multikolinearitas (VIF - if multiple X)
-    vif_results = []
-    has_multicollinearity = False
-    if len(req.x_vars) > 1:
-        for idx, var in enumerate(req.x_vars, start=1):
-            try:
-                v = variance_inflation_factor(X.values, idx)
-            except Exception:
-                v = 1.0
-            is_high = bool(v > 10.0)
-            if is_high:
-                has_multicollinearity = True
-            vif_results.append({
-                "variable": var,
-                "vif": round(float(v), 3) if not np.isinf(v) else 999.0,
-                "tolerance": round(1.0 / v, 3) if v > 0 else 1.0,
-                "status": "Aman (VIF < 10)" if not is_high else "Multikolinearitas Terdeteksi (VIF > 10)",
-            })
+        if n < 8:
+            raise HTTPException(status_code=400, detail=f"Minimal 8 observasi numerik valid untuk uji asumsi klasik (ditemukan {n}).")
 
-    all_passed = bool(is_normal and is_homoscedastic and no_autocorr and not has_multicollinearity)
+        for v in all_vars:
+            if sub_df[v].std() == 0 or pd.isna(sub_df[v].std()):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Variabel '{v}' tidak memiliki variasi nilai (konstan/varians 0)."
+                )
 
-    return {
-        "status": "success",
-        "n": n,
-        "all_assumptions_met": all_passed,
-        "normality": {
-            "test": "Shapiro-Wilk",
-            "statistic": round(float(shapiro_w), 4),
-            "p_value": round(float(shapiro_p), 4),
-            "passed": is_normal,
-            "verdict": "Residual berdistribusi normal (p >= 0.05)" if is_normal else "Residual tidak normal (p < 0.05)",
-        },
-        "heteroscedasticity": {
-            "test": "Breusch-Pagan",
-            "lm_stat": round(float(bp_lm), 4),
-            "p_value": round(float(bp_pvalue), 4),
-            "passed": is_homoscedastic,
-            "verdict": "Tidak terjadi heteroskedastisitas (p >= 0.05)" if is_homoscedastic else "Heteroskedastisitas terdeteksi (p < 0.05)",
-        },
-        "autocorrelation": {
-            "test": "Durbin-Watson",
-            "statistic": round(dw_stat, 4),
-            "passed": no_autocorr,
-            "verdict": "Tidak ada masalah autokorelasi (1.5 - 2.5)" if no_autocorr else "Potensi autokorelasi terdeteksi",
-        },
-        "multicollinearity": {
-            "tested": len(req.x_vars) > 1,
-            "passed": not has_multicollinearity,
-            "variables": vif_results,
-        },
-    }
+        X = sm.add_constant(sub_df[req.x_vars])
+        y = sub_df[req.y_var]
+        model = sm.OLS(y, X).fit()
+        residuals = model.resid
+
+        # 1. Normalitas Residual (Shapiro-Wilk)
+        shapiro_w, shapiro_p = stats.shapiro(residuals)
+        is_normal = bool(shapiro_p >= 0.05)
+
+        # 2. Heteroskedastisitas (Breusch-Pagan)
+        try:
+            bp_lm, bp_pvalue, _, _ = het_breuschpagan(residuals, X)
+            is_homoscedastic = bool(bp_pvalue >= 0.05)
+        except Exception:
+            bp_lm, bp_pvalue = 0.0, 1.0
+            is_homoscedastic = True
+
+        # 3. Autokorelasi (Durbin-Watson)
+        dw_stat = float(durbin_watson(residuals))
+        no_autocorr = bool(1.5 <= dw_stat <= 2.5)
+
+        # 4. Multikolinearitas (VIF - if multiple X)
+        vif_results = []
+        has_multicollinearity = False
+        if len(req.x_vars) > 1:
+            for idx, var in enumerate(req.x_vars, start=1):
+                try:
+                    v = variance_inflation_factor(X.values, idx)
+                except Exception:
+                    v = 1.0
+                is_high = bool(v > 10.0)
+                if is_high:
+                    has_multicollinearity = True
+                vif_results.append({
+                    "variable": var,
+                    "vif": round(float(v), 3) if not np.isinf(v) else 999.0,
+                    "tolerance": round(1.0 / v, 3) if v > 0 else 1.0,
+                    "status": "Aman (VIF < 10)" if not is_high else "Multikolinearitas Terdeteksi (VIF > 10)",
+                })
+
+        all_passed = bool(is_normal and is_homoscedastic and no_autocorr and not has_multicollinearity)
+
+        return {
+            "status": "success",
+            "n": n,
+            "all_assumptions_met": all_passed,
+            "normality": {
+                "test": "Shapiro-Wilk",
+                "statistic": round(float(shapiro_w), 4),
+                "p_value": round(float(shapiro_p), 4),
+                "passed": is_normal,
+                "verdict": "Residual berdistribusi normal (p >= 0.05)" if is_normal else "Residual tidak normal (p < 0.05)",
+            },
+            "heteroscedasticity": {
+                "test": "Breusch-Pagan",
+                "lm_stat": round(float(bp_lm), 4),
+                "p_value": round(float(bp_pvalue), 4),
+                "passed": is_homoscedastic,
+                "verdict": "Tidak terjadi heteroskedastisitas (p >= 0.05)" if is_homoscedastic else "Heteroskedastisitas terdeteksi (p < 0.05)",
+            },
+            "autocorrelation": {
+                "test": "Durbin-Watson",
+                "statistic": round(dw_stat, 4),
+                "passed": no_autocorr,
+                "verdict": "Tidak ada masalah autokorelasi (1.5 - 2.5)" if no_autocorr else "Potensi autokorelasi terdeteksi",
+            },
+            "multicollinearity": {
+                "tested": len(req.x_vars) > 1,
+                "passed": not has_multicollinearity,
+                "variables": vif_results,
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Gagal menghitung uji asumsi klasik: {str(e)}")
 
 # 8. Mesin Validasi Independen (Research Validation Engine)
 @app.post("/api/stats/validate")
 def validate_computation(req: ValidationCheckRequest):
-    df = read_dataset_file(req.get_source(), req.sheet_name)
-    method = req.method
-    params = req.params
-    tolerance = 1e-6
+    try:
+        df = read_dataset_file(req.get_source(), req.sheet_name)
+        method = req.method
+        params = req.params
+        tolerance = 1e-6
 
-    checks = []
-    discrepancies = []
+        checks = []
+        discrepancies = []
 
-    # Check 1: Sample adequacy
-    n = len(df)
-    sample_passed = n >= 30
-    checks.append({
-        "check": "Kecukupan Jumlah Sampel (Central Limit Theorem)",
-        "passed": sample_passed,
-        "detail": f"N = {n} {'mencukupi (N >= 30)' if sample_passed else 'terlalu kecil (N < 30)'}",
-    })
-
-    # Check 2: Missing data audit
-    total_missing = int(df.isna().sum().sum())
-    missing_passed = total_missing == 0
-    checks.append({
-        "check": "Kelengkapan Data",
-        "passed": missing_passed,
-        "detail": "Data 100% lengkap tanpa nilai hilang" if missing_passed else f"Terdapat {total_missing} nilai kosong",
-    })
-
-    # Check 3: Independent recomputation
-    if method == "SIMPLE_REGRESSION":
-        x_var = params.get("x") or params.get("x_var")
-        y_var = params.get("y") or params.get("y_var")
-        sub_df = df[[x_var, y_var]].apply(pd.to_numeric, errors="coerce").dropna()
-
-        # Method A: statsmodels OLS
-        X_mat = sm.add_constant(sub_df[x_var])
-        res_ols = sm.OLS(sub_df[y_var], X_mat).fit()
-        b1_a = float(res_ols.params.iloc[1])
-        r2_a = float(res_ols.rsquared)
-
-        # Method B: scipy.stats.linregress
-        res_scipy = stats.linregress(sub_df[x_var], sub_df[y_var])
-        b1_b = float(res_scipy.slope)
-        r2_b = float(res_scipy.rvalue ** 2)
-
-        diff_b1 = abs(b1_a - b1_b)
-        diff_r2 = abs(r2_a - r2_b)
-        recomp_passed = (diff_b1 < tolerance) and (diff_r2 < tolerance)
-
-        if not recomp_passed:
-            discrepancies.append({
-                "metric": "Slope (b)",
-                "engine_a": b1_a,
-                "engine_b": b1_b,
-                "diff": diff_b1,
-            })
-            discrepancies.append({
-                "metric": "R²",
-                "engine_a": r2_a,
-                "engine_b": r2_b,
-                "diff": diff_r2,
-            })
-
+        # Check 1: Sample adequacy
+        n = len(df)
+        sample_passed = n >= 30
         checks.append({
-            "check": "Komputasi Independen (Statsmodels vs Scipy Linregress)",
-            "passed": recomp_passed,
-            "detail": f"Selisih maksimum {max(diff_b1, diff_r2):.8f} (toleransi < {tolerance})",
+            "check": "Kecukupan Jumlah Sampel (Central Limit Theorem)",
+            "passed": sample_passed,
+            "detail": f"N = {n} {'mencukupi (N >= 30)' if sample_passed else 'terlalu kecil (N < 30)'}",
         })
 
-    all_passed = all(c["passed"] for c in checks)
+        # Check 2: Missing data audit
+        total_missing = int(df.isna().sum().sum())
+        missing_passed = total_missing == 0
+        checks.append({
+            "check": "Kelengkapan Data",
+            "passed": missing_passed,
+            "detail": "Data 100% lengkap tanpa nilai hilang" if missing_passed else f"Terdapat {total_missing} nilai kosong",
+        })
 
-    return {
-        "status": "success",
-        "validation_passed": all_passed,
-        "tolerance": tolerance,
-        "checks": checks,
-        "discrepancies": discrepancies if discrepancies else None,
-        "badge": "Tervalidasi" if all_passed else "Perlu Ditinjau",
-    }
+        # Check 3: Independent recomputation
+        if method == "SIMPLE_REGRESSION":
+            x_var = params.get("x") or params.get("x_var")
+            y_var = params.get("y") or params.get("y_var")
+            x_clean = coerce_numeric_series(df[x_var])
+            y_clean = coerce_numeric_series(df[y_var])
+            sub_df = pd.DataFrame({x_var: x_clean, y_var: y_clean}).dropna()
+
+            # Method A: statsmodels OLS
+            X_mat = sm.add_constant(sub_df[x_var])
+            res_ols = sm.OLS(sub_df[y_var], X_mat).fit()
+            b1_a = float(res_ols.params.iloc[1])
+            r2_a = float(res_ols.rsquared)
+
+            # Method B: scipy.stats.linregress
+            res_scipy = stats.linregress(sub_df[x_var], sub_df[y_var])
+            b1_b = float(res_scipy.slope)
+            r2_b = float(res_scipy.rvalue ** 2)
+
+            diff_b1 = abs(b1_a - b1_b)
+            diff_r2 = abs(r2_a - r2_b)
+            recomp_passed = (diff_b1 < tolerance) and (diff_r2 < tolerance)
+
+            if not recomp_passed:
+                discrepancies.append({
+                    "metric": "Slope (b)",
+                    "engine_a": b1_a,
+                    "engine_b": b1_b,
+                    "diff": diff_b1,
+                })
+                discrepancies.append({
+                    "metric": "R²",
+                    "engine_a": r2_a,
+                    "engine_b": r2_b,
+                    "diff": diff_r2,
+                })
+
+            checks.append({
+                "check": "Komputasi Independen (Statsmodels vs Scipy Linregress)",
+                "passed": recomp_passed,
+                "detail": f"Selisih maksimum {max(diff_b1, diff_r2):.8f} (toleransi < {tolerance})",
+            })
+
+        all_passed = all(c["passed"] for c in checks)
+
+        return {
+            "status": "success",
+            "validation_passed": all_passed,
+            "tolerance": tolerance,
+            "checks": checks,
+            "discrepancies": discrepancies if discrepancies else None,
+            "badge": "Tervalidasi" if all_passed else "Perlu Ditinjau",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Gagal memvalidasi komputasi: {str(e)}")
 
