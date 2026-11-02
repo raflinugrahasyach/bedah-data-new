@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { uploadDatasetToSupabase } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 import fs from "fs/promises";
 import path from "path";
@@ -189,44 +190,44 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 7. Save Raw File to Storage & Generate Cloud-Resilient Data URI
-    let userDir = path.resolve(process.cwd(), "storage", "datasets", session.user.id);
-    let targetFilePath = "";
-    try {
-      await fs.mkdir(userDir, { recursive: true });
-      const safeBaseName = path
-        .basename(originalName, ext)
-        .replace(/[^a-zA-Z0-9_\-]/g, "_");
-      const uniqueFileName = `${Date.now()}_${safeBaseName}${ext}`;
-      targetFilePath = path.join(userDir, uniqueFileName);
-      await fs.writeFile(targetFilePath, buffer);
-    } catch {
-      try {
-        userDir = path.resolve(os.tmpdir(), "storage", "datasets", session.user.id);
-        await fs.mkdir(userDir, { recursive: true });
-        const safeBaseName = path
-          .basename(originalName, ext)
-          .replace(/[^a-zA-Z0-9_\-]/g, "_");
-        const uniqueFileName = `${Date.now()}_${safeBaseName}${ext}`;
-        targetFilePath = path.join(userDir, uniqueFileName);
-        await fs.writeFile(targetFilePath, buffer);
-      } catch (writeErr) {
-        console.warn("Storage write skipped, relying on base64 database persistence:", writeErr);
-      }
-    }
+    // 7. Upload Raw File Directly to Supabase Storage ('datasets' bucket)
+    const safeBaseName = path
+      .basename(originalName, ext)
+      .replace(/[^a-zA-Z0-9_\-]/g, "_");
+    const uniqueFileName = `${Date.now()}_${safeBaseName}${ext}`;
+    const storagePath = `${session.user.id}/${uniqueFileName}`;
 
-    // Embed data URI directly for zero-filesystem cloud resilience across Vercel & Render
-    const mimeType =
+    const contentType =
       ext === ".csv"
         ? "text/csv"
         : ext === ".xlsx"
         ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         : "application/vnd.ms-excel";
-    const base64Data = buffer.toString("base64");
-    const dataUri = `data:${mimeType};base64,${base64Data}`;
-    const storageKeyToSave = buffer.length <= 8 * 1024 * 1024 ? dataUri : (targetFilePath || `file://${originalName}`);
 
-    // 8. Save Dataset Metadata to Database
+    // Attempt direct upload to Supabase Storage bucket
+    let publicFileUrl = await uploadDatasetToSupabase(storagePath, buffer, contentType);
+
+    // If Supabase Storage client is not configured or in local fallback, construct public URL
+    if (!publicFileUrl) {
+      publicFileUrl = `https://oyyzvggcfbstubjxywix.supabase.co/storage/v1/object/public/datasets/${storagePath}`;
+    }
+
+    // Save local copy if local directory is writable
+    try {
+      const userDir = path.resolve(process.cwd(), "storage", "datasets", session.user.id);
+      await fs.mkdir(userDir, { recursive: true });
+      await fs.writeFile(path.join(userDir, uniqueFileName), buffer);
+    } catch {
+      try {
+        const tmpDir = path.resolve(os.tmpdir(), "storage", "datasets", session.user.id);
+        await fs.mkdir(tmpDir, { recursive: true });
+        await fs.writeFile(path.join(tmpDir, uniqueFileName), buffer);
+      } catch {
+        // Ephemeral filesystem skip
+      }
+    }
+
+    // 8. Save Dataset Metadata to Database with Supabase Storage URL
     const dataset = await db.dataset.create({
       data: {
         ownerId: session.user.id,
@@ -234,7 +235,7 @@ export async function POST(req: NextRequest) {
         fileName: originalName,
         fileType: ext.replace(".", ""),
         fileSize: file.size,
-        storageKey: storageKeyToSave,
+        storageKey: publicFileUrl,
         sheetName: sheetName,
         rowCount: rowCount,
         columnCount: columnCount,

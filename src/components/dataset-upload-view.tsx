@@ -28,6 +28,11 @@ export function DatasetUploadView() {
   const [calculating, setCalculating] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
 
+  // Anti-Cold Start: Silent background ping to wake up Python FastAPI backend on Render
+  React.useEffect(() => {
+    fetch("/api/stats/health").catch(() => {});
+  }, []);
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();

@@ -1,5 +1,6 @@
 import os
 import io
+import urllib.request
 import base64
 import math
 from typing import List, Optional, Dict, Any, Union
@@ -31,15 +32,52 @@ app.add_middleware(
 
 # ───────────── Helper Functions ─────────────
 
-def read_dataset_file(file_path: str, sheet_name: Optional[str] = None) -> pd.DataFrame:
-    """Reads CSV, XLSX, or XLS into a pandas DataFrame from local path, base64 data URI, or remote URL."""
-    # 1. Base64 Data URI Support (for zero-filesystem cross-cloud resilience)
-    if file_path.startswith("data:"):
+def read_dataset_file(file_path_or_url: str, sheet_name: Optional[str] = None) -> pd.DataFrame:
+    """Reads CSV, XLSX, or XLS into a pandas DataFrame directly in memory from URL or local path."""
+    if not file_path_or_url:
+        raise HTTPException(status_code=400, detail="dataset_url atau file_path wajib disertakan.")
+
+    # 1. Direct URL download (Supabase Storage public URL or remote server)
+    if file_path_or_url.startswith(("http://", "https://")):
         try:
-            if "," in file_path:
-                header, encoded = file_path.split(",", 1)
+            req = urllib.request.Request(
+                file_path_or_url,
+                headers={"User-Agent": "BedahData-StatsEngine/1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                content = resp.read()
+            bio = io.BytesIO(content)
+            clean_url = file_path_or_url.split("?")[0].lower()
+            if clean_url.endswith(".csv") or "csv" in clean_url:
+                try:
+                    df = pd.read_csv(bio, sep=None, engine="python")
+                except Exception:
+                    bio.seek(0)
+                    df = pd.read_csv(bio)
             else:
-                header, encoded = "", file_path
+                try:
+                    if sheet_name:
+                        df = pd.read_excel(bio, sheet_name=sheet_name)
+                    else:
+                        df = pd.read_excel(bio)
+                except Exception:
+                    bio.seek(0)
+                    df = pd.read_csv(bio)
+            df.columns = [str(col).strip() for col in df.columns]
+            return df
+        except Exception as err:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Gagal mengunduh atau membaca dataset dari Supabase Storage URL: {str(err)}"
+            )
+
+    # 2. Base64 Data URI Support (backward compatibility fallback)
+    if file_path_or_url.startswith("data:"):
+        try:
+            if "," in file_path_or_url:
+                header, encoded = file_path_or_url.split(",", 1)
+            else:
+                header, encoded = "", file_path_or_url
             raw_bytes = base64.b64decode(encoded)
             bio = io.BytesIO(raw_bytes)
             if "csv" in header.lower():
@@ -62,8 +100,9 @@ def read_dataset_file(file_path: str, sheet_name: Optional[str] = None) -> pd.Da
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Gagal memproses data dataset: {str(e)}")
 
-    is_url = file_path.startswith(("http://", "https://"))
-    if not is_url and not os.path.exists(file_path):
+    # 3. Local file path
+    file_path = file_path_or_url
+    if not os.path.exists(file_path):
         base_name = os.path.basename(file_path)
         candidates = [
             os.path.join("storage", "datasets", base_name),
@@ -110,7 +149,6 @@ def read_dataset_file(file_path: str, sheet_name: Optional[str] = None) -> pd.Da
             detail="File SPSS (.sav) tidak didukung. Silakan ekspor ke format Excel atau CSV terlebih dahulu.",
         )
     elif ext == ".csv":
-        # Detect delimiter: comma, semicolon, tab
         try:
             df = pd.read_csv(file_path, sep=None, engine="python")
         except Exception:
@@ -124,7 +162,6 @@ def read_dataset_file(file_path: str, sheet_name: Optional[str] = None) -> pd.Da
         else:
             df = pd.read_excel(file_path)
     else:
-        # Fallback attempt as CSV if extension is not clear
         try:
             df = pd.read_csv(file_path)
         except Exception:
@@ -152,54 +189,48 @@ def safe_float(val: Any) -> Optional[float]:
 
 # ───────────── Request / Response Models ─────────────
 
-class DatasetPathRequest(BaseModel):
-    file_path: str
+class BaseDatasetRequest(BaseModel):
+    file_path: Optional[str] = None
+    dataset_url: Optional[str] = None
     sheet_name: Optional[str] = None
 
-class DescriptiveRequest(BaseModel):
-    file_path: str
-    sheet_name: Optional[str] = None
+    def get_source(self) -> str:
+        src = self.dataset_url or self.file_path
+        if not src:
+            raise HTTPException(status_code=400, detail="dataset_url atau file_path wajib disertakan.")
+        return src
+
+class DatasetPathRequest(BaseDatasetRequest):
+    pass
+
+class DescriptiveRequest(BaseDatasetRequest):
     variables: Optional[List[str]] = None
 
-class RegressionSimpleRequest(BaseModel):
-    file_path: str
-    sheet_name: Optional[str] = None
+class RegressionSimpleRequest(BaseDatasetRequest):
     x_var: str
     y_var: str
 
-class RegressionMultipleRequest(BaseModel):
-    file_path: str
-    sheet_name: Optional[str] = None
+class RegressionMultipleRequest(BaseDatasetRequest):
     x_vars: List[str]
     y_var: str
 
-class CorrelationRequest(BaseModel):
-    file_path: str
-    sheet_name: Optional[str] = None
+class CorrelationRequest(BaseDatasetRequest):
     variables: List[str]
     method: str = "pearson"
 
-class ValidityRequest(BaseModel):
-    file_path: str
-    sheet_name: Optional[str] = None
+class ValidityRequest(BaseDatasetRequest):
     item_vars: List[str]
     total_var: Optional[str] = None
     alpha: float = 0.05
 
-class ReliabilityRequest(BaseModel):
-    file_path: str
-    sheet_name: Optional[str] = None
+class ReliabilityRequest(BaseDatasetRequest):
     item_vars: List[str]
 
-class AssumptionsRequest(BaseModel):
-    file_path: str
-    sheet_name: Optional[str] = None
+class AssumptionsRequest(BaseDatasetRequest):
     x_vars: List[str]
     y_var: str
 
-class ValidationCheckRequest(BaseModel):
-    file_path: str
-    sheet_name: Optional[str] = None
+class ValidationCheckRequest(BaseDatasetRequest):
     method: str
     params: Dict[str, Any]
 
@@ -218,7 +249,7 @@ def health_check():
 # 1. Modul Statistik Deskriptif
 @app.post("/api/stats/descriptive")
 def calculate_descriptive(req: DescriptiveRequest):
-    df = read_dataset_file(req.file_path, req.sheet_name)
+    df = read_dataset_file(req.get_source(), req.sheet_name)
     selected_vars = req.variables if req.variables else df.columns.tolist()
 
     numeric_results = []
@@ -311,7 +342,7 @@ def calculate_descriptive(req: DescriptiveRequest):
 # 2. Modul Korelasi Pearson
 @app.post("/api/stats/correlation")
 def calculate_correlation(req: CorrelationRequest):
-    df = read_dataset_file(req.file_path, req.sheet_name)
+    df = read_dataset_file(req.get_source(), req.sheet_name)
     cols = [c for c in req.variables if c in df.columns]
 
     if len(cols) < 2:
@@ -384,7 +415,7 @@ def calculate_correlation(req: CorrelationRequest):
 # 3. Modul Uji Validitas Kuesioner (Pearson Item-Total)
 @app.post("/api/stats/validity")
 def calculate_validity(req: ValidityRequest):
-    df = read_dataset_file(req.file_path, req.sheet_name)
+    df = read_dataset_file(req.get_source(), req.sheet_name)
     items = [c for c in req.item_vars if c in df.columns]
 
     if len(items) < 2:
@@ -442,7 +473,7 @@ def calculate_validity(req: ValidityRequest):
 # 4. Modul Uji Reliabilitas (Cronbach's Alpha)
 @app.post("/api/stats/reliability")
 def calculate_reliability(req: ReliabilityRequest):
-    df = read_dataset_file(req.file_path, req.sheet_name)
+    df = read_dataset_file(req.get_source(), req.sheet_name)
     items = [c for c in req.item_vars if c in df.columns]
 
     if len(items) < 2:
@@ -512,7 +543,7 @@ def calculate_reliability(req: ReliabilityRequest):
 # 5. Modul Regresi Linier Sederhana
 @app.post("/api/stats/regression/simple")
 def calculate_simple_regression(req: RegressionSimpleRequest):
-    df = read_dataset_file(req.file_path, req.sheet_name)
+    df = read_dataset_file(req.get_source(), req.sheet_name)
     if req.x_var not in df.columns or req.y_var not in df.columns:
         raise HTTPException(status_code=400, detail="Variabel X atau Y tidak ditemukan di dataset.")
 
@@ -616,7 +647,7 @@ def calculate_simple_regression(req: RegressionSimpleRequest):
 # 6. Modul Regresi Linier Berganda
 @app.post("/api/stats/regression/multiple")
 def calculate_multiple_regression(req: RegressionMultipleRequest):
-    df = read_dataset_file(req.file_path, req.sheet_name)
+    df = read_dataset_file(req.get_source(), req.sheet_name)
     all_vars = req.x_vars + [req.y_var]
     for v in all_vars:
         if v not in df.columns:
@@ -707,7 +738,7 @@ def calculate_multiple_regression(req: RegressionMultipleRequest):
 # 7. Modul Uji Asumsi Klasik
 @app.post("/api/stats/assumptions")
 def calculate_assumptions(req: AssumptionsRequest):
-    df = read_dataset_file(req.file_path, req.sheet_name)
+    df = read_dataset_file(req.get_source(), req.sheet_name)
     all_vars = req.x_vars + [req.y_var]
     sub_df = df[all_vars].apply(pd.to_numeric, errors="coerce").dropna()
     n = len(sub_df)
@@ -792,7 +823,7 @@ def calculate_assumptions(req: AssumptionsRequest):
 # 8. Mesin Validasi Independen (Research Validation Engine)
 @app.post("/api/stats/validate")
 def validate_computation(req: ValidationCheckRequest):
-    df = read_dataset_file(req.file_path, req.sheet_name)
+    df = read_dataset_file(req.get_source(), req.sheet_name)
     method = req.method
     params = req.params
     tolerance = 1e-6

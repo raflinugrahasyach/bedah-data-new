@@ -156,6 +156,11 @@ export function AnalysisWorkbench({
   const [isRecommending, setIsRecommending] = useState(false);
   const [aiRecommendation, setAiRecommendation] = useState<any | null>(null);
 
+  // Anti-Cold Start: Pre-warm Render Python backend on mount
+  useEffect(() => {
+    fetch("/api/stats/health").catch(() => {});
+  }, []);
+
   // Initialize default variable choices when variables load
   useEffect(() => {
     if (variablesList.length >= 2) {

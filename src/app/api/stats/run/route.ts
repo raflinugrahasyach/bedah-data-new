@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { AnalysisMethod } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const PYTHON_API_URL = process.env.PYTHON_API_URL || process.env.STATS_ENGINE_URL || "http://localhost:8000";
 
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
     // Map method to FastAPI endpoint and payload
     let endpoint = "";
     let payload: any = {
+      dataset_url: dataset.storageKey,
       file_path: dataset.storageKey,
       sheet_name: dataset.sheetName,
     };
@@ -98,7 +100,7 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now();
     let engineRes: Response;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 seconds tolerance for Render cold start
+    const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 seconds tolerance for Render cold start (Vercel maxDuration=60)
 
     try {
       engineRes = await fetch(`${PYTHON_API_URL}${endpoint}`, {

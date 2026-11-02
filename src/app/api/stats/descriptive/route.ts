@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const PYTHON_API_URL = process.env.PYTHON_API_URL || process.env.STATS_ENGINE_URL || "http://localhost:8000";
 
@@ -37,13 +38,14 @@ export async function POST(req: NextRequest) {
     // Call Python FastAPI engine with timeout tolerance for cold starts
     let engineRes: Response;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000);
+    const timeoutId = setTimeout(() => controller.abort(), 55000);
 
     try {
       engineRes = await fetch(`${PYTHON_API_URL}/api/stats/descriptive`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          dataset_url: dataset.storageKey,
           file_path: dataset.storageKey,
           sheet_name: dataset.sheetName,
           variables: variables || null,
