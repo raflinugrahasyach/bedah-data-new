@@ -32,9 +32,27 @@ export async function POST(req: NextRequest) {
     });
 
     const activeSub = user?.subscriptions?.[0];
-    const maxProjects = activeSub?.plan?.maxProjects ?? 1; // Free tier default = 1
+    
+    // Determine project limit (null = UNLIMITED)
+    let maxProjects: number | null = null;
+    if (!activeSub) {
+      maxProjects = 1; // Free tier default
+    } else if (activeSub.tier === "RESEARCHER" || activeSub.tier === "CAMPUS") {
+      maxProjects = null; // Researcher & Campus tiers are 100% UNLIMITED
+    } else {
+      maxProjects = activeSub.plan?.maxProjects !== undefined ? activeSub.plan.maxProjects : 5;
+    }
 
-    if (maxProjects !== null && (user?.projects?.length || 0) >= maxProjects) {
+    // Always bypass paywall for Demo accounts and Admins
+    const isBypassed =
+      user?.isDemo ||
+      user?.email === "peneliti@bedahdata.id" ||
+      user?.role === "ADMIN" ||
+      (session.user as any).role === "ADMIN" ||
+      activeSub?.tier === "RESEARCHER" ||
+      activeSub?.tier === "CAMPUS";
+
+    if (!isBypassed && maxProjects !== null && (user?.projects?.length || 0) >= maxProjects) {
       return NextResponse.json(
         {
           error: `Batas paket ${activeSub?.tier || "Free"} tercapai (Maksimal ${maxProjects} proyek). Silakan upgrade paket untuk membuat lebih banyak proyek.`,
