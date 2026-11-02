@@ -51,6 +51,7 @@ export function AdminTractionKpiCards({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* 1. User Terdaftar */}
         <div
+          data-kpi-card="users"
           onClick={() => setActiveModal("users")}
           className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2 hover:border-[#3984f5] hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
@@ -69,6 +70,7 @@ export function AdminTractionKpiCards({
 
         {/* 2. Monthly Active User */}
         <div
+          data-kpi-card="mau"
           onClick={() => setActiveModal("mau")}
           className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2 hover:border-[#16a34a] hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
@@ -87,6 +89,7 @@ export function AdminTractionKpiCards({
 
         {/* 3. Analisis Riset */}
         <div
+          data-kpi-card="analyses"
           onClick={() => setActiveModal("analyses")}
           className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2 hover:border-[#7c3aed] hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
@@ -105,6 +108,7 @@ export function AdminTractionKpiCards({
 
         {/* 4. Total Revenue */}
         <div
+          data-kpi-card="revenue"
           onClick={() => setActiveModal("revenue")}
           className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2 hover:border-[#3984f5] hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
@@ -123,6 +127,7 @@ export function AdminTractionKpiCards({
 
         {/* 5. Retensi Pengguna */}
         <div
+          data-kpi-card="retention"
           onClick={() => setActiveModal("retention")}
           className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2 hover:border-amber-500 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
@@ -142,7 +147,7 @@ export function AdminTractionKpiCards({
 
       {/* MODAL DIALOG CONTAINER */}
       {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+        <div data-kpi-modal="true" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
           <div
             className="bg-white rounded-3xl border border-[#e9edf3] shadow-2xl w-full max-w-4xl max-h-[88vh] flex flex-col overflow-hidden animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
