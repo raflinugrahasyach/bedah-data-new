@@ -34,16 +34,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });
     }
 
-    // Call Python FastAPI engine
-    const engineRes = await fetch(`${PYTHON_API_URL}/api/stats/descriptive`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        file_path: dataset.storageKey,
-        sheet_name: dataset.sheetName,
-        variables: variables || null,
-      }),
-    });
+    // Call Python FastAPI engine with timeout tolerance for cold starts
+    let engineRes: Response;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+    try {
+      engineRes = await fetch(`${PYTHON_API_URL}/api/stats/descriptive`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          file_path: dataset.storageKey,
+          sheet_name: dataset.sheetName,
+          variables: variables || null,
+        }),
+        signal: controller.signal,
+      });
+    } catch (fetchErr: any) {
+      clearTimeout(timeoutId);
+      if (fetchErr.name === "AbortError") {
+        return NextResponse.json(
+          {
+            error:
+              "Layanan komputasi statistik memerlukan waktu lebih lama untuk merespons (proses inisialisasi cold start). Silakan coba jalankan kembali.",
+          },
+          { status: 504 }
+        );
+      }
+      return NextResponse.json(
+        {
+          error: `Gagal terhubung ke mesin analisis statistik (${fetchErr.message}). Pastikan layanan backend aktif.`,
+        },
+        { status: 503 }
+      );
+    }
+    clearTimeout(timeoutId);
 
     if (!engineRes.ok) {
       const errData = await engineRes.json().catch(() => ({}));

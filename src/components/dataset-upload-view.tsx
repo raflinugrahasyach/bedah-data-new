@@ -12,6 +12,8 @@ import {
   Database,
   Table as TableIcon,
   Sparkles,
+  X,
+  RotateCcw,
 } from "lucide-react";
 
 export function DatasetUploadView() {
@@ -40,12 +42,14 @@ export function DatasetUploadView() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    if (uploading) return;
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploading) return;
     if (e.target.files && e.target.files[0]) {
       handleFileUpload(e.target.files[0]);
     }
@@ -55,22 +59,22 @@ export function DatasetUploadView() {
     setErrorMsg("");
     setAnalysisResult(null);
 
-    // Reject .sav on client side immediately with prompt message
+    // Reject .sav on client side immediately with polite guidance
     const name = file.name.toLowerCase();
     if (name.endsWith(".sav")) {
       setErrorMsg(
-        "File SPSS (.sav) tidak didukung. Silakan ekspor data Anda ke format Excel (.xlsx/.xls) atau CSV terlebih dahulu."
+        "Format SPSS (.sav) tidak didukung secara langsung demi integritas data. Silakan buka file Anda di SPSS, lalu pilih File > Save As / Export ke format Excel (.xlsx) atau CSV (.csv) untuk dianalisis di Bedah Data."
       );
       return;
     }
 
     if (!name.endsWith(".csv") && !name.endsWith(".xlsx") && !name.endsWith(".xls")) {
-      setErrorMsg("Format file tidak didukung. Mohon upload file CSV, XLSX, atau XLS.");
+      setErrorMsg("Format file tidak didukung. Mohon gunakan file dengan format CSV, XLSX, atau XLS.");
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setErrorMsg("Ukuran file melebihi batas 10 MB.");
+      setErrorMsg("Ukuran file melebihi batas maksimal 10 MB.");
       return;
     }
 
@@ -91,7 +95,7 @@ export function DatasetUploadView() {
         setUploadResult(data);
       }
     } catch (err: any) {
-      setErrorMsg(`Terjadi kesalahan jaringan: ${err.message}`);
+      setErrorMsg(`Terjadi kendala jaringan saat mengunggah file: ${err.message}`);
     } finally {
       setUploading(false);
     }
@@ -159,9 +163,22 @@ export function DatasetUploadView() {
       </div>
 
       {errorMsg && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[13px] flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0 text-red-500" />
-          <span>{errorMsg}</span>
+        <div className="p-4.5 rounded-2xl bg-red-50/90 border border-red-200 text-red-800 text-[13px] flex items-start justify-between gap-3 shadow-sm animate-fadeIn">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 shrink-0 text-red-600 mt-0.5" />
+            <div>
+              <div className="font-bold text-red-900 mb-0.5">Pemberitahuan Validasi File</div>
+              <p className="leading-relaxed text-red-800">{errorMsg}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setErrorMsg("")}
+            className="text-red-400 hover:text-red-700 p-1 rounded-lg transition-colors cursor-pointer"
+            aria-label="Tutup pesan error"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -171,11 +188,15 @@ export function DatasetUploadView() {
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all ${
-          dragActive
-            ? "border-[#3984f5] bg-[#edf5ff]"
-            : "border-[#d8e2ee] bg-white hover:border-[#3984f5] hover:bg-[#fafcff]"
+        onClick={() => {
+          if (!uploading) fileInputRef.current?.click();
+        }}
+        className={`border-2 border-dashed rounded-3xl p-10 text-center transition-all ${
+          uploading
+            ? "border-[#d8e2ee] bg-[#fafcff] opacity-80 cursor-not-allowed"
+            : dragActive
+            ? "border-[#3984f5] bg-[#edf5ff] cursor-pointer"
+            : "border-[#d8e2ee] bg-white hover:border-[#3984f5] hover:bg-[#fafcff] cursor-pointer"
         }`}
       >
         <input
@@ -183,12 +204,13 @@ export function DatasetUploadView() {
           type="file"
           accept=".csv,.xlsx,.xls"
           onChange={handleFileChange}
+          disabled={uploading}
           className="hidden"
         />
 
         <div className="w-14 h-14 rounded-2xl bg-[#edf5ff] text-[#3984f5] flex items-center justify-center mx-auto mb-4 shadow-sm">
           {uploading ? (
-            <Loader2 className="w-7 h-7 animate-spin" />
+            <Loader2 className="w-7 h-7 animate-spin text-[#3984f5]" />
           ) : (
             <Upload className="w-7 h-7" />
           )}
@@ -204,12 +226,12 @@ export function DatasetUploadView() {
         <button
           type="button"
           disabled={uploading}
-          className="mt-5 px-5 py-2.5 bg-[#3984f5] hover:bg-[#2672df] text-white font-semibold text-[13px] rounded-xl shadow-sm transition-all inline-flex items-center gap-2"
+          className="mt-5 px-5 py-2.5 bg-[#3984f5] hover:bg-[#2672df] text-white font-semibold text-[13px] rounded-xl shadow-sm transition-all inline-flex items-center gap-2 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
         >
           {uploading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Memvalidasi...</span>
+              <span>Memvalidasi Struktur Dataset...</span>
             </>
           ) : (
             <>
@@ -244,24 +266,39 @@ export function DatasetUploadView() {
               </div>
             </div>
 
-            <button
-              onClick={runDescriptiveAnalysis}
-              disabled={calculating}
-              className="px-5 py-2.5 bg-[#16a34a] hover:bg-[#15803d] text-white font-bold text-[13.5px] rounded-xl shadow-md shadow-[#16a34a]/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
-            >
-              {calculating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Menghitung di Mesin Python...</span>
-                </>
-              ) : (
-                <>
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Jalankan Analisis Statistik Deskriptif</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setUploadResult(null);
+                  setAnalysisResult(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                className="px-4 py-2.5 bg-[#f0f4fb] hover:bg-[#e4ebf7] text-[#243149] font-semibold text-[13px] rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-[#57667c]" />
+                <span>Ganti File</span>
+              </button>
+
+              <button
+                onClick={runDescriptiveAnalysis}
+                disabled={calculating}
+                className="px-5 py-2.5 bg-[#16a34a] hover:bg-[#15803d] text-white font-bold text-[13.5px] rounded-xl shadow-md shadow-[#16a34a]/20 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+              >
+                {calculating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Menghitung di Mesin Python...</span>
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="w-4 h-4" />
+                    <span>Jalankan Analisis Statistik Deskriptif</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* 5 Quality Indicators */}
@@ -404,7 +441,7 @@ export function DatasetUploadView() {
           <div className="p-4 rounded-xl bg-[#f8faff] border border-[#e2ecf9] text-[13px] text-[#243149]">
             <div className="font-bold mb-1 flex items-center gap-1.5 text-[#3984f5]">
               <Sparkles className="w-4 h-4" />
-              <span>Ringkasan Akademik Bedah Data:</span>
+              <span>Ringkasan Temuan Statistik:</span>
             </div>
             <p className="text-[#57667c] leading-relaxed">{analysisResult.summary}</p>
           </div>

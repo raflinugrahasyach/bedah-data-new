@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "File SPSS (.sav) tidak didukung. Silakan ekspor ke format Excel (.xlsx/.xls) atau CSV terlebih dahulu.",
+            "Format SPSS (.sav) tidak didukung secara langsung demi integritas data. Silakan buka file Anda di SPSS, lalu pilih File > Save As / Export ke format Excel (.xlsx) atau CSV (.csv) untuk dianalisis di Bedah Data.",
         },
         { status: 400 }
       );
@@ -189,22 +189,42 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 7. Save Raw File to Storage (with serverless /tmp fallback for Vercel)
+    // 7. Save Raw File to Storage & Generate Cloud-Resilient Data URI
     let userDir = path.resolve(process.cwd(), "storage", "datasets", session.user.id);
+    let targetFilePath = "";
     try {
       await fs.mkdir(userDir, { recursive: true });
+      const safeBaseName = path
+        .basename(originalName, ext)
+        .replace(/[^a-zA-Z0-9_\-]/g, "_");
+      const uniqueFileName = `${Date.now()}_${safeBaseName}${ext}`;
+      targetFilePath = path.join(userDir, uniqueFileName);
+      await fs.writeFile(targetFilePath, buffer);
     } catch {
-      userDir = path.resolve(os.tmpdir(), "storage", "datasets", session.user.id);
-      await fs.mkdir(userDir, { recursive: true });
+      try {
+        userDir = path.resolve(os.tmpdir(), "storage", "datasets", session.user.id);
+        await fs.mkdir(userDir, { recursive: true });
+        const safeBaseName = path
+          .basename(originalName, ext)
+          .replace(/[^a-zA-Z0-9_\-]/g, "_");
+        const uniqueFileName = `${Date.now()}_${safeBaseName}${ext}`;
+        targetFilePath = path.join(userDir, uniqueFileName);
+        await fs.writeFile(targetFilePath, buffer);
+      } catch (writeErr) {
+        console.warn("Storage write skipped, relying on base64 database persistence:", writeErr);
+      }
     }
 
-    const safeBaseName = path
-      .basename(originalName, ext)
-      .replace(/[^a-zA-Z0-9_\-]/g, "_");
-    const uniqueFileName = `${Date.now()}_${safeBaseName}${ext}`;
-    const targetFilePath = path.join(userDir, uniqueFileName);
-
-    await fs.writeFile(targetFilePath, buffer);
+    // Embed data URI directly for zero-filesystem cloud resilience across Vercel & Render
+    const mimeType =
+      ext === ".csv"
+        ? "text/csv"
+        : ext === ".xlsx"
+        ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        : "application/vnd.ms-excel";
+    const base64Data = buffer.toString("base64");
+    const dataUri = `data:${mimeType};base64,${base64Data}`;
+    const storageKeyToSave = buffer.length <= 8 * 1024 * 1024 ? dataUri : (targetFilePath || `file://${originalName}`);
 
     // 8. Save Dataset Metadata to Database
     const dataset = await db.dataset.create({
@@ -214,7 +234,7 @@ export async function POST(req: NextRequest) {
         fileName: originalName,
         fileType: ext.replace(".", ""),
         fileSize: file.size,
-        storageKey: targetFilePath,
+        storageKey: storageKeyToSave,
         sheetName: sheetName,
         rowCount: rowCount,
         columnCount: columnCount,

@@ -344,7 +344,7 @@ export function AnalysisWorkbench({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#3984f5]">
               <Sparkles className="w-4 h-4 text-amber-500" />
-              Saran Metodologi Bedah AI
+              Rekomendasi Metodologi Analisis
             </div>
             <span className="text-[11px] bg-white px-2.5 py-0.5 rounded-full border border-[#d6e6fe] font-medium text-[#243149]">
               {aiRecommendation.methodTitle}
@@ -707,7 +707,7 @@ export function AnalysisWorkbench({
         )}
 
         {/* Run Button */}
-        <div className="pt-2 flex items-center justify-between">
+        <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="text-xs text-[#738196]">
             File aktif: <span className="font-semibold text-[#243149]">{selectedDataset?.fileName}</span> &middot; {selectedDataset?.rowCount} responden
           </div>
@@ -715,7 +715,7 @@ export function AnalysisWorkbench({
           <button
             onClick={handleRunAnalysis}
             disabled={isExecuting}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#3984f5] hover:bg-[#2672df] text-white font-bold text-[13px] rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#3984f5] hover:bg-[#2672df] text-white font-bold text-[13px] rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isExecuting ? (
               <>
@@ -731,10 +731,31 @@ export function AnalysisWorkbench({
           </button>
         </div>
 
+        {isExecuting && (
+          <div className="bg-[#edf5ff] border border-[#d6e6fe] text-[#243149] text-xs p-3.5 rounded-xl flex items-center gap-2.5 animate-fadeIn">
+            <RotateCw className="w-4 h-4 text-[#3984f5] animate-spin shrink-0" />
+            <span className="text-[12.5px]">
+              Sedang memproses estimasi parameter statistik &amp; uji signifikansi di backend Python...
+            </span>
+          </div>
+        )}
+
         {executionError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-xl flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{executionError}</span>
+          <div className="bg-red-50 border border-red-200 text-red-800 text-xs p-3.5 rounded-xl flex items-start justify-between gap-3 animate-fadeIn">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+              <div>
+                <div className="font-bold text-red-900 mb-0.5">Kendala Analisis Data</div>
+                <p className="leading-relaxed text-red-700">{executionError}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleRunAnalysis}
+              className="text-xs font-bold text-[#3984f5] hover:underline shrink-0 cursor-pointer"
+            >
+              Coba Lagi
+            </button>
           </div>
         )}
       </div>
@@ -795,47 +816,49 @@ export function AnalysisWorkbench({
                 <div className="px-5 py-3.5 bg-[#f8faff] border-b border-[#e9edf3] font-bold text-xs text-[#243149]">
                   Tabel 1: Koefisien Regresi Linier (Coefficients)
                 </div>
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-[#e9edf3] text-[#738196] font-semibold bg-[#fafcff]">
-                      <th className="py-2.5 px-4">Model Variabel</th>
-                      <th className="py-2.5 px-4 text-right">B (Unstandardized)</th>
-                      <th className="py-2.5 px-4 text-right">Std. Error</th>
-                      <th className="py-2.5 px-4 text-right">Beta (Standardized)</th>
-                      <th className="py-2.5 px-4 text-right">t-hitung</th>
-                      <th className="py-2.5 px-4 text-right">Sig. (p-value)</th>
-                      <th className="py-2.5 px-4 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f0f3f8]">
-                    {analysisResult.coefficients?.map((c: any, i: number) => {
-                      const sig = c.p_value !== null && c.p_value < 0.05;
-                      return (
-                        <tr key={i} className="hover:bg-[#fafcff]">
-                          <td className="py-2.5 px-4 font-semibold text-[#243149]">{c.term}</td>
-                          <td className="py-2.5 px-4 text-right font-mono">{c.b !== null ? c.b.toFixed(4) : "-"}</td>
-                          <td className="py-2.5 px-4 text-right font-mono">{c.std_error !== null ? c.std_error.toFixed(4) : "-"}</td>
-                          <td className="py-2.5 px-4 text-right font-mono">{c.beta !== null && c.beta !== undefined ? c.beta.toFixed(4) : "-"}</td>
-                          <td className="py-2.5 px-4 text-right font-mono font-bold text-[#243149]">{c.t !== null ? c.t.toFixed(3) : "-"}</td>
-                          <td className="py-2.5 px-4 text-right font-mono font-bold text-[#3984f5]">{c.p_value !== null ? c.p_value.toFixed(4) : "-"}</td>
-                          <td className="py-2.5 px-4 text-center">
-                            {c.term === "(Constant)" ? (
-                              <span className="text-[#94a3b8] text-[11px]">-</span>
-                            ) : sig ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-green-50 text-green-700 border border-green-200">
-                                Signifikan (p &lt; 0.05)
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                Tidak Sig. (p ≥ 0.05)
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-[640px]">
+                    <thead>
+                      <tr className="border-b border-[#e9edf3] text-[#738196] font-semibold bg-[#fafcff]">
+                        <th className="py-2.5 px-4">Model Variabel</th>
+                        <th className="py-2.5 px-4 text-right">B (Unstandardized)</th>
+                        <th className="py-2.5 px-4 text-right">Std. Error</th>
+                        <th className="py-2.5 px-4 text-right">Beta (Standardized)</th>
+                        <th className="py-2.5 px-4 text-right">t-hitung</th>
+                        <th className="py-2.5 px-4 text-right">Sig. (p-value)</th>
+                        <th className="py-2.5 px-4 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#f0f3f8]">
+                      {analysisResult.coefficients?.map((c: any, i: number) => {
+                        const sig = c.p_value !== null && c.p_value < 0.05;
+                        return (
+                          <tr key={i} className="hover:bg-[#fafcff]">
+                            <td className="py-2.5 px-4 font-semibold text-[#243149]">{c.term}</td>
+                            <td className="py-2.5 px-4 text-right font-mono">{c.b !== null ? c.b.toFixed(4) : "-"}</td>
+                            <td className="py-2.5 px-4 text-right font-mono">{c.std_error !== null ? c.std_error.toFixed(4) : "-"}</td>
+                            <td className="py-2.5 px-4 text-right font-mono">{c.beta !== null && c.beta !== undefined ? c.beta.toFixed(4) : "-"}</td>
+                            <td className="py-2.5 px-4 text-right font-mono font-bold text-[#243149]">{c.t !== null ? c.t.toFixed(3) : "-"}</td>
+                            <td className="py-2.5 px-4 text-right font-mono font-bold text-[#3984f5]">{c.p_value !== null ? c.p_value.toFixed(4) : "-"}</td>
+                            <td className="py-2.5 px-4 text-center">
+                              {c.term === "(Constant)" ? (
+                                <span className="text-[#94a3b8] text-[11px]">-</span>
+                              ) : sig ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-green-50 text-green-700 border border-green-200">
+                                  Signifikan (p &lt; 0.05)
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                  Tidak Sig. (p ≥ 0.05)
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* ANOVA Table */}
@@ -844,44 +867,46 @@ export function AnalysisWorkbench({
                   <div className="px-5 py-3.5 bg-[#f8faff] border-b border-[#e9edf3] font-bold text-xs text-[#243149]">
                     Tabel 2: Uji Kelayakan Model (ANOVA)
                   </div>
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-[#e9edf3] text-[#738196] font-semibold bg-[#fafcff]">
-                        <th className="py-2 px-4">Sumber Variasi</th>
-                        <th className="py-2 px-4 text-right">Sum of Squares</th>
-                        <th className="py-2 px-4 text-right">df</th>
-                        <th className="py-2 px-4 text-right">Mean Square</th>
-                        <th className="py-2 px-4 text-right">F-hitung</th>
-                        <th className="py-2 px-4 text-right">Sig. (F)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#f0f3f8]">
-                      <tr>
-                        <td className="py-2 px-4 font-semibold text-[#243149]">Regression</td>
-                        <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ss_regression?.toFixed(3)}</td>
-                        <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.df_regression}</td>
-                        <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ms_regression?.toFixed(3)}</td>
-                        <td className="py-2 px-4 text-right font-mono font-bold text-[#243149]">{analysisResult.anova.f_stat?.toFixed(3)}</td>
-                        <td className="py-2 px-4 text-right font-mono font-bold text-[#3984f5]">{analysisResult.anova.p_value?.toFixed(4)}</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 px-4 font-semibold text-[#243149]">Residual</td>
-                        <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ss_residual?.toFixed(3)}</td>
-                        <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.df_residual}</td>
-                        <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ms_residual?.toFixed(3)}</td>
-                        <td className="py-2 px-4 text-right font-mono">-</td>
-                        <td className="py-2 px-4 text-right font-mono">-</td>
-                      </tr>
-                      <tr className="bg-[#fafcff] font-bold">
-                        <td className="py-2 px-4 text-[#243149]">Total</td>
-                        <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ss_total?.toFixed(3)}</td>
-                        <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.df_total}</td>
-                        <td className="py-2 px-4 text-right font-mono">-</td>
-                        <td className="py-2 px-4 text-right font-mono">-</td>
-                        <td className="py-2 px-4 text-right font-mono">-</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs min-w-[560px]">
+                      <thead>
+                        <tr className="border-b border-[#e9edf3] text-[#738196] font-semibold bg-[#fafcff]">
+                          <th className="py-2 px-4">Sumber Variasi</th>
+                          <th className="py-2 px-4 text-right">Sum of Squares</th>
+                          <th className="py-2 px-4 text-right">df</th>
+                          <th className="py-2 px-4 text-right">Mean Square</th>
+                          <th className="py-2 px-4 text-right">F-hitung</th>
+                          <th className="py-2 px-4 text-right">Sig. (F)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#f0f3f8]">
+                        <tr>
+                          <td className="py-2 px-4 font-semibold text-[#243149]">Regression</td>
+                          <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ss_regression?.toFixed(3)}</td>
+                          <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.df_regression}</td>
+                          <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ms_regression?.toFixed(3)}</td>
+                          <td className="py-2 px-4 text-right font-mono font-bold text-[#243149]">{analysisResult.anova.f_stat?.toFixed(3)}</td>
+                          <td className="py-2 px-4 text-right font-mono font-bold text-[#3984f5]">{analysisResult.anova.p_value?.toFixed(4)}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-4 font-semibold text-[#243149]">Residual</td>
+                          <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ss_residual?.toFixed(3)}</td>
+                          <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.df_residual}</td>
+                          <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ms_residual?.toFixed(3)}</td>
+                          <td className="py-2 px-4 text-right font-mono">-</td>
+                          <td className="py-2 px-4 text-right font-mono">-</td>
+                        </tr>
+                        <tr className="bg-[#fafcff] font-bold">
+                          <td className="py-2 px-4 text-[#243149]">Total</td>
+                          <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.ss_total?.toFixed(3)}</td>
+                          <td className="py-2 px-4 text-right font-mono">{analysisResult.anova.df_total}</td>
+                          <td className="py-2 px-4 text-right font-mono">-</td>
+                          <td className="py-2 px-4 text-right font-mono">-</td>
+                          <td className="py-2 px-4 text-right font-mono">-</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 
@@ -890,7 +915,7 @@ export function AnalysisWorkbench({
                 <div className="bg-[#edf5ff] border border-[#d6e6fe] rounded-2xl p-4.5 space-y-1.5">
                   <div className="flex items-center gap-2 text-xs font-bold text-[#3984f5] uppercase tracking-wider">
                     <Sparkles className="w-4 h-4" />
-                    Interpretasi Akademik Otomatis (Bedah AI)
+                    Interpretasi Akademik Hasil Penelitian
                   </div>
                   <p className="text-xs text-[#243149] leading-relaxed font-medium">
                     {analysisResult.interpretation}
@@ -919,38 +944,40 @@ export function AnalysisWorkbench({
               </div>
 
               <div className="bg-white rounded-2xl border border-[#e9edf3] overflow-hidden shadow-sm">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-[#e9edf3] text-[#738196] font-semibold bg-[#fafcff]">
-                      <th className="py-2.5 px-4">Butir Kuesioner</th>
-                      <th className="py-2.5 px-4 text-right">R-Hitung (Pearson)</th>
-                      <th className="py-2.5 px-4 text-right">R-Tabel</th>
-                      <th className="py-2.5 px-4 text-right">p-value</th>
-                      <th className="py-2.5 px-4 text-center">Status Validitas</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f0f3f8]">
-                    {analysisResult.results?.map((item: any, i: number) => (
-                      <tr key={i} className="hover:bg-[#fafcff]">
-                        <td className="py-2.5 px-4 font-semibold text-[#243149]">{item.item}</td>
-                        <td className="py-2.5 px-4 text-right font-mono font-bold text-[#243149]">{item.r_hitung?.toFixed(4)}</td>
-                        <td className="py-2.5 px-4 text-right font-mono">{item.r_tabel}</td>
-                        <td className="py-2.5 px-4 text-right font-mono text-[#3984f5]">{item.p_value?.toFixed(4)}</td>
-                        <td className="py-2.5 px-4 text-center">
-                          {item.is_valid ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
-                              ✓ Valid
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
-                              ✕ Gugur / Tidak Valid
-                            </span>
-                          )}
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-[520px]">
+                    <thead>
+                      <tr className="border-b border-[#e9edf3] text-[#738196] font-semibold bg-[#fafcff]">
+                        <th className="py-2.5 px-4">Butir Kuesioner</th>
+                        <th className="py-2.5 px-4 text-right">R-Hitung (Pearson)</th>
+                        <th className="py-2.5 px-4 text-right">R-Tabel</th>
+                        <th className="py-2.5 px-4 text-right">p-value</th>
+                        <th className="py-2.5 px-4 text-center">Status Validitas</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#f0f3f8]">
+                      {analysisResult.results?.map((item: any, i: number) => (
+                        <tr key={i} className="hover:bg-[#fafcff]">
+                          <td className="py-2.5 px-4 font-semibold text-[#243149]">{item.item}</td>
+                          <td className="py-2.5 px-4 text-right font-mono font-bold text-[#243149]">{item.r_hitung?.toFixed(4)}</td>
+                          <td className="py-2.5 px-4 text-right font-mono">{item.r_tabel}</td>
+                          <td className="py-2.5 px-4 text-right font-mono text-[#3984f5]">{item.p_value?.toFixed(4)}</td>
+                          <td className="py-2.5 px-4 text-center">
+                            {item.is_valid ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
+                                ✓ Valid
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+                                ✕ Gugur / Tidak Valid
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -987,28 +1014,30 @@ export function AnalysisWorkbench({
                 <div className="px-5 py-3.5 bg-[#f8faff] border-b border-[#e9edf3] font-bold text-xs text-[#243149]">
                   Tabel: Item-Total Statistics &amp; Alpha Jika Butir Dihapus
                 </div>
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-[#e9edf3] text-[#738196] font-semibold bg-[#fafcff]">
-                      <th className="py-2.5 px-4">Butir</th>
-                      <th className="py-2.5 px-4 text-right">Corrected Item-Total Correlation</th>
-                      <th className="py-2.5 px-4 text-right">Cronbach's Alpha if Item Deleted</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f0f3f8]">
-                    {analysisResult.alpha_if_item_deleted?.map((it: any, i: number) => (
-                      <tr key={i} className="hover:bg-[#fafcff]">
-                        <td className="py-2.5 px-4 font-semibold text-[#243149]">{it.item}</td>
-                        <td className="py-2.5 px-4 text-right font-mono font-bold text-[#243149]">
-                          {it.corrected_item_total_correlation}
-                        </td>
-                        <td className="py-2.5 px-4 text-right font-mono text-[#3984f5]">
-                          {it.alpha_if_deleted}
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-[480px]">
+                    <thead>
+                      <tr className="border-b border-[#e9edf3] text-[#738196] font-semibold bg-[#fafcff]">
+                        <th className="py-2.5 px-4">Butir</th>
+                        <th className="py-2.5 px-4 text-right">Corrected Item-Total Correlation</th>
+                        <th className="py-2.5 px-4 text-right">Cronbach's Alpha if Item Deleted</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#f0f3f8]">
+                      {analysisResult.alpha_if_item_deleted?.map((it: any, i: number) => (
+                        <tr key={i} className="hover:bg-[#fafcff]">
+                          <td className="py-2.5 px-4 font-semibold text-[#243149]">{it.item}</td>
+                          <td className="py-2.5 px-4 text-right font-mono font-bold text-[#243149]">
+                            {it.corrected_item_total_correlation}
+                          </td>
+                          <td className="py-2.5 px-4 text-right font-mono text-[#3984f5]">
+                            {it.alpha_if_deleted}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

@@ -44,17 +44,42 @@ export async function POST(req: NextRequest) {
 
     const latestAnalysis = project.analyses?.[0];
 
-    // Call Python FastAPI validation endpoint
-    const engineRes = await fetch(`${PYTHON_API_URL}/api/stats/validate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        file_path: dataset.storageKey,
-        sheet_name: dataset.sheetName,
-        method: project.method || "SIMPLE_REGRESSION",
-        params: latestAnalysis?.params || { x: "motivasi_belajar", y: "hasil_belajar" },
-      }),
-    });
+    // Call Python FastAPI validation endpoint with cold-start timeout handling
+    let engineRes: Response;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+    try {
+      engineRes = await fetch(`${PYTHON_API_URL}/api/stats/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          file_path: dataset.storageKey,
+          sheet_name: dataset.sheetName,
+          method: project.method || "SIMPLE_REGRESSION",
+          params: latestAnalysis?.params || { x: "motivasi_belajar", y: "hasil_belajar" },
+        }),
+        signal: controller.signal,
+      });
+    } catch (fetchErr: any) {
+      clearTimeout(timeoutId);
+      if (fetchErr.name === "AbortError") {
+        return NextResponse.json(
+          {
+            error:
+              "Layanan validasi memerlukan waktu respons lebih lama (proses cold-start backend). Silakan coba kembali dalam beberapa saat.",
+          },
+          { status: 504 }
+        );
+      }
+      return NextResponse.json(
+        {
+          error: `Gagal terhubung ke mesin validasi riset (${fetchErr.message}).`,
+        },
+        { status: 503 }
+      );
+    }
+    clearTimeout(timeoutId);
 
     if (!engineRes.ok) {
       const err = await engineRes.json().catch(() => ({}));

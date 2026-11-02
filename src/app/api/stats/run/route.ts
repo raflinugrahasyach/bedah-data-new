@@ -96,11 +96,36 @@ export async function POST(req: NextRequest) {
     }
 
     const startTime = Date.now();
-    const engineRes = await fetch(`${PYTHON_API_URL}${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    let engineRes: Response;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 seconds tolerance for Render cold start
+
+    try {
+      engineRes = await fetch(`${PYTHON_API_URL}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+    } catch (fetchErr: any) {
+      clearTimeout(timeoutId);
+      if (fetchErr.name === "AbortError") {
+        return NextResponse.json(
+          {
+            error:
+              "Layanan komputasi statistik memerlukan waktu lebih lama untuk merespons (proses inisialisasi cold start). Silakan coba jalankan kembali.",
+          },
+          { status: 504 }
+        );
+      }
+      return NextResponse.json(
+        {
+          error: `Gagal terhubung ke mesin analisis statistik. Pastikan layanan backend aktif (${fetchErr.message}).`,
+        },
+        { status: 503 }
+      );
+    }
+    clearTimeout(timeoutId);
 
     if (!engineRes.ok) {
       const errData = await engineRes.json().catch(() => ({}));
