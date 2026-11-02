@@ -51,3 +51,18 @@ export async function uploadDatasetToSupabase(
   }
 }
 
+/**
+ * Ensures any dataset storageKey is converted to a fully-qualified public HTTP URL
+ * for remote python computation (Hugging Face / cloud backend).
+ */
+export function getPublicDatasetUrl(storageKey: string): string {
+  if (!storageKey) return "";
+  if (storageKey.startsWith("http://") || storageKey.startsWith("https://")) {
+    return storageKey;
+  }
+  const cleanKey = storageKey.includes("datasets/")
+    ? storageKey.substring(storageKey.indexOf("datasets/"))
+    : `datasets/${storageKey.replace(/^\/+/, "")}`;
+  return `https://oyyzvggcfbstubjxywix.supabase.co/storage/v1/object/public/${cleanKey}`;
+}
+

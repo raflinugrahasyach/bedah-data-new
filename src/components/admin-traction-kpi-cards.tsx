@@ -408,7 +408,7 @@ export function AdminTractionKpiCards({
                       </div>
                     </div>
                     <div className="text-xs text-[#243149] font-medium bg-white px-3 py-1.5 rounded-xl border border-[#d6e6fe]">
-                      Status: <strong>Terverifikasi Akumulasi Platform</strong>
+                      Status: <strong>100% Sesuai Traksi &amp; Pitch Deck</strong>
                     </div>
                   </div>
 
@@ -527,3 +527,4 @@ export function AdminTractionKpiCards({
     </>
   );
 }
+

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getPublicDatasetUrl } from "@/lib/supabase";
 import { AnalysisMethod } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -37,10 +38,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Map method to FastAPI endpoint and payload
+    const resolvedUrl = getPublicDatasetUrl(dataset.storageKey);
     let endpoint = "";
     let payload: any = {
-      dataset_url: dataset.storageKey,
-      file_path: dataset.storageKey,
+      dataset_url: resolvedUrl,
+      file_path: resolvedUrl,
       sheet_name: dataset.sheetName,
     };
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getPublicDatasetUrl } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -41,12 +42,13 @@ export async function POST(req: NextRequest) {
     const timeoutId = setTimeout(() => controller.abort(), 55000);
 
     try {
+      const resolvedUrl = getPublicDatasetUrl(dataset.storageKey);
       engineRes = await fetch(`${PYTHON_API_URL}/api/stats/descriptive`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          dataset_url: dataset.storageKey,
-          file_path: dataset.storageKey,
+          dataset_url: resolvedUrl,
+          file_path: resolvedUrl,
           sheet_name: dataset.sheetName,
           variables: variables || null,
         }),
