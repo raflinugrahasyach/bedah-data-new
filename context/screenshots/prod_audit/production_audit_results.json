@@ -1,0 +1,139 @@
+{
+  "url": "https://bedah-data-new.vercel.app",
+  "timestamp": "2026-11-02T03:53:18.941Z",
+  "checklist": {
+    "loginPageTitle": "Bedah Data",
+    "demoCardsPresent": {
+      "hasPenelitiDemo": true,
+      "hasAdminDemo": true
+    },
+    "penelitiAuthSuccess": true,
+    "supabaseProjectsLoaded": true,
+    "projectTitles": [
+      "Evaluasi Pembelajaran Digital150 responden · 5 variabel",
+      "Survei Pengalaman Belajar Mahasiswa64 responden · 5 variabel",
+      "Hubungan Durasi Belajar dan Prestasi85 responden · 5 variabel",
+      "Pengaruh Motivasi terhadap Hasil Belajar120 responden · 5 variabel"
+    ],
+    "hasValidatedBadge": true,
+    "datasetUploadSuccess": false,
+    "adminAccessGranted": true
+  },
+  "consoleErrors": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/forgot-password?_rsc=_H_fFy2_Q06N8BA7"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/register?_rsc=_H_fFy2_Q06N8BA7"
+      }
+    },
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "location": {
+        "url": "http://localhost:3000/dashboard"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/register?_rsc=j79Vj4yH5aoiafxS"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/forgot-password?_rsc=j79Vj4yH5aoiafxS"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 500 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/api/dataset/upload"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 500 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/api/stats/run"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/forgot-password?_rsc=_H_fFy2_Q06N8BA7"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/register?_rsc=_H_fFy2_Q06N8BA7"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/forgot-password?_rsc=xFVjKFL12UrVWmwy"
+      }
+    },
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "location": {
+        "url": "http://localhost:3000/admin"
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "location": {
+        "url": "https://bedah-data-new.vercel.app/register?_rsc=xFVjKFL12UrVWmwy"
+      }
+    }
+  ],
+  "networkErrors": [
+    {
+      "url": "https://bedah-data-new.vercel.app/forgot-password?_rsc=_H_fFy2_Q06N8BA7",
+      "status": 404
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/register?_rsc=_H_fFy2_Q06N8BA7",
+      "status": 404
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/register?_rsc=j79Vj4yH5aoiafxS",
+      "status": 404
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/forgot-password?_rsc=j79Vj4yH5aoiafxS",
+      "status": 404
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/api/dataset/upload",
+      "status": 500
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/api/stats/run",
+      "status": 500
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/forgot-password?_rsc=_H_fFy2_Q06N8BA7",
+      "status": 404
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/register?_rsc=_H_fFy2_Q06N8BA7",
+      "status": 404
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/forgot-password?_rsc=xFVjKFL12UrVWmwy",
+      "status": 404
+    },
+    {
+      "url": "https://bedah-data-new.vercel.app/register?_rsc=xFVjKFL12UrVWmwy",
+      "status": 404
+    }
+  ],
+  "fatalError": "net::ERR_CONNECTION_REFUSED at https://bedah-data-new.vercel.app/login"
+}
