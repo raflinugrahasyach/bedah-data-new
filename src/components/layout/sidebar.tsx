@@ -223,7 +223,15 @@ export function Sidebar({ projectCount = 4 }: SidebarProps) {
           <button
             type="button"
             title="Keluar"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={async () => {
+              try {
+                await signOut({ redirect: false });
+              } catch (e) {
+                console.error("Sign out error:", e);
+              } finally {
+                window.location.href = "/login";
+              }
+            }}
             className="p-1.5 text-[#8e9eb3] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />

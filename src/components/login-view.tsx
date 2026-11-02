@@ -21,7 +21,22 @@ import Link from "next/link";
 export function LoginView() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const rawCallback = searchParams.get("callbackUrl") || "/dashboard";
+
+  // Sanitize callback URL: strictly extract relative path, never allow external / localhost origins
+  let sanitizedCallback = "/dashboard";
+  if (rawCallback.startsWith("/") && rawCallback !== "/login") {
+    sanitizedCallback = rawCallback;
+  } else if (rawCallback.startsWith("http://") || rawCallback.startsWith("https://")) {
+    try {
+      const parsed = new URL(rawCallback);
+      if (parsed.pathname && parsed.pathname !== "/login") {
+        sanitizedCallback = `${parsed.pathname}${parsed.search}`;
+      }
+    } catch {
+      sanitizedCallback = "/dashboard";
+    }
+  }
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,10 +62,10 @@ export function LoginView() {
         setErrorMsg("Email atau kata sandi belum sesuai. Silakan coba lagi atau gunakan akun demo di samping.");
         setLoading(false);
       } else {
-        // Successful login, determine redirect based on email or fetch session
+        // Successful login, determine redirect based on role and sanitized callback
         const target = submitEmail.includes("admin")
           ? "/admin"
-          : (callbackUrl && callbackUrl.startsWith("/") && callbackUrl !== "/login" ? callbackUrl : "/dashboard");
+          : (sanitizedCallback || "/dashboard");
         window.location.href = target;
       }
     } catch (err) {
