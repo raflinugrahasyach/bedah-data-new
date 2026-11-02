@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getPublicDatasetUrl } from "@/lib/supabase";
+import { getPythonApiUrl } from "@/lib/python-client";
 import { AnalysisMethod } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-const PYTHON_API_URL = process.env.PYTHON_API_URL || process.env.STATS_ENGINE_URL || "http://localhost:8000";
 
 export async function POST(req: NextRequest) {
   try {
@@ -102,10 +101,11 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now();
     let engineRes: Response;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 seconds tolerance for Render cold start (Vercel maxDuration=60)
+    const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 seconds tolerance for Render/Hugging Face cold start
+    const pythonApiUrl = getPythonApiUrl();
 
     try {
-      engineRes = await fetch(`${PYTHON_API_URL}${endpoint}`, {
+      engineRes = await fetch(`${pythonApiUrl}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

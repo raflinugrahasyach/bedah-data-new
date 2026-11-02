@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getPublicDatasetUrl } from "@/lib/supabase";
+import { getPythonApiUrl } from "@/lib/python-client";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-const PYTHON_API_URL = process.env.PYTHON_API_URL || process.env.STATS_ENGINE_URL || "http://localhost:8000";
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,8 +51,9 @@ export async function POST(req: NextRequest) {
     const timeoutId = setTimeout(() => controller.abort(), 55000);
 
     try {
+      const pythonUrl = getPythonApiUrl();
       const resolvedUrl = getPublicDatasetUrl(dataset.storageKey);
-      engineRes = await fetch(`${PYTHON_API_URL}/api/stats/validate`, {
+      engineRes = await fetch(`${pythonUrl}/api/stats/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
