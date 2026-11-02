@@ -186,7 +186,7 @@ export function LoginView() {
                       Dashboard riset: proyek, analisis statistik &amp; validasi penelitian.
                     </p>
                     <div className="mt-1 font-mono text-[11px] text-[#57667c] bg-[#f8faff] px-2 py-0.5 rounded border border-[#edf2f9] inline-block">
-                      peneliti@bedahdata.id &middot; BedahData2026!
+                      peneliti@bedahdata.id &middot; BedahDataPeneliti2026!
                     </div>
                   </div>
                 </div>
@@ -215,7 +215,7 @@ export function LoginView() {
                       Panel penjualan: pendapatan, pelanggan &amp; performa paket SaaS.
                     </p>
                     <div className="mt-1 font-mono text-[11px] text-[#57667c] bg-[#f8faff] px-2 py-0.5 rounded border border-[#edf2f9] inline-block">
-                      admin@bedahdata.id &middot; BedahData2026!
+                      admin@bedahdata.id &middot; BedahDataAdmin2026!
                     </div>
                   </div>
                 </div>
