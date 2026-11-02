@@ -149,7 +149,7 @@ export function ProjectCreateWizard({ datasets }: ProjectCreateWizardProps) {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Contoh: Pengaruh Motivasi Belajar terhadap Hasil Ujian Mahasiswa"
+              placeholder="Pengaruh Motivasi Belajar terhadap Hasil Ujian Mahasiswa"
               className="w-full text-sm rounded-xl border border-[#e2e8f0] px-3.5 py-2.5 focus:outline-none focus:border-[#3984f5]"
             />
           </div>
@@ -162,7 +162,7 @@ export function ProjectCreateWizard({ datasets }: ProjectCreateWizardProps) {
               rows={3}
               value={hypothesis}
               onChange={(e) => setHypothesis(e.target.value)}
-              placeholder="Contoh: Terdapat pengaruh positif yang signifikan antara motivasi belajar terhadap hasil ujian..."
+              placeholder="Terdapat pengaruh positif yang signifikan antara motivasi belajar terhadap hasil ujian..."
               className="w-full text-xs rounded-xl border border-[#e2e8f0] px-3.5 py-2.5 focus:outline-none focus:border-[#3984f5]"
             />
             <p className="text-[11px] text-[#738196] mt-1">

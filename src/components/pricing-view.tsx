@@ -490,7 +490,7 @@ export function PricingView() {
                     required
                     value={instName}
                     onChange={(e) => setInstName(e.target.value)}
-                    placeholder="Contoh: Universitas Airlangga / ITS"
+                    placeholder="Universitas Airlangga / ITS"
                     className="w-full text-xs rounded-xl border border-[#e2e8f0] px-3.5 py-2 focus:outline-none focus:border-[#3984f5]"
                   />
                 </div>
@@ -517,7 +517,7 @@ export function PricingView() {
                     required
                     value={picName}
                     onChange={(e) => setPicName(e.target.value)}
-                    placeholder="Contoh: Dr. Budi Santoso, M.Si"
+                    placeholder="Dr. Budi Santoso, M.Si"
                     className="w-full text-xs rounded-xl border border-[#e2e8f0] px-3.5 py-2 focus:outline-none focus:border-[#3984f5]"
                   />
                 </div>
