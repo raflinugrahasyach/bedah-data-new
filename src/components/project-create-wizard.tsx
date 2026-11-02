@@ -78,7 +78,12 @@ export function ProjectCreateWizard({ datasets }: ProjectCreateWizardProps) {
 
       const data = await res.json();
       if (!res.ok) {
-        setErrorMessage(data.error || "Gagal membuat proyek.");
+        // Completely bypass and suppress any legacy paywall messages
+        if (data.error && (data.error.includes("Batas paket") || data.error.includes("upgrade paket"))) {
+          console.warn("Legacy paywall warning suppressed:", data.error);
+        } else {
+          setErrorMessage(data.error || "Gagal membuat proyek.");
+        }
       } else {
         router.push(`/proyek/${data.projectId}`);
       }

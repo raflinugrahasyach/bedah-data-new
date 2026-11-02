@@ -19,47 +19,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Judul proyek wajib diisi." }, { status: 400 });
     }
 
-    // Check project quota for user tier
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      include: {
-        subscriptions: {
-          where: { status: "ACTIVE" },
-          include: { plan: true },
-        },
-        projects: true,
-      },
-    });
-
-    const activeSub = user?.subscriptions?.[0];
-    
-    // Determine project limit (null = UNLIMITED)
-    let maxProjects: number | null = null;
-    if (!activeSub) {
-      maxProjects = 1; // Free tier default
-    } else if (activeSub.tier === "RESEARCHER" || activeSub.tier === "CAMPUS") {
-      maxProjects = null; // Researcher & Campus tiers are 100% UNLIMITED
-    } else {
-      maxProjects = activeSub.plan?.maxProjects !== undefined ? activeSub.plan.maxProjects : 5;
-    }
-
-    // Always bypass paywall for Demo accounts and Admins
-    const isBypassed =
-      user?.isDemo ||
-      user?.email === "peneliti@bedahdata.id" ||
-      user?.role === "ADMIN" ||
-      (session.user as any).role === "ADMIN" ||
-      activeSub?.tier === "RESEARCHER" ||
-      activeSub?.tier === "CAMPUS";
-
-    if (!isBypassed && maxProjects !== null && (user?.projects?.length || 0) >= maxProjects) {
-      return NextResponse.json(
-        {
-          error: `Batas paket ${activeSub?.tier || "Free"} tercapai (Maksimal ${maxProjects} proyek). Silakan upgrade paket untuk membuat lebih banyak proyek.`,
-        },
-        { status: 403 }
-      );
-    }
+    // MVP / Incubator Demo Mode:
+    // ALL project creation limits and paywalls are 100% disabled globally.
+    // Every user (Peneliti, Student, Admin, Demo) has UNLIMITED projects.
+    // Zero paywall restrictions.
 
     // Create the project
     const project = await db.project.create({
