@@ -27,3 +27,4 @@ export async function GET() {
     return NextResponse.json({ status: "waking_up", error: err.message });
   }
 }
+

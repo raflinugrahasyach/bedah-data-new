@@ -25,21 +25,21 @@ export function BrandLogo({ className = "", size = "md", href = "/" }: BrandLogo
   const { width, height } = dimensions[size];
 
   const content = (
-    <div className={`flex items-center select-none ${className}`}>
+    <div className={`flex items-center select-none shrink-0 ${className}`}>
       <Image
         src="/brand/logo-color.png"
         alt="Bedah Data"
         width={width}
         height={height}
         priority
-        className={`${sizeClasses[size]} max-w-full object-contain`}
+        className={`${sizeClasses[size]} max-w-full object-contain shrink-0`}
       />
     </div>
   );
 
   if (href) {
     return (
-      <Link href={href} className="inline-block transition-opacity hover:opacity-90">
+      <Link href={href} className="inline-block shrink-0 transition-opacity hover:opacity-90">
         {content}
       </Link>
     );

@@ -1,5 +1,6 @@
 import React from "react";
 import { db } from "@/lib/db";
+import { AdminTractionKpiCards } from "@/components/admin-traction-kpi-cards";
 import {
   Users,
   TrendingUp,
@@ -87,55 +88,14 @@ export default async function AdminTractionPage() {
         </div>
       </div>
 
-      {/* 5 Main Growth Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="text-[11px] font-bold text-[#738196] uppercase flex items-center justify-between">
-            <span>User Terdaftar</span>
-            <Users className="w-4 h-4 text-[#3984f5]" />
-          </div>
-          <div className="text-3xl font-black text-[#243149]">{displayUsers}+</div>
-          <p className="text-[11px] text-[#57667c]">Semua akun terdaftar</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="text-[11px] font-bold text-[#738196] uppercase flex items-center justify-between">
-            <span>Monthly Active User</span>
-            <TrendingUp className="w-4 h-4 text-[#16a34a]" />
-          </div>
-          <div className="text-3xl font-black text-[#243149]">{displayMau}+</div>
-          <p className="text-[11px] text-[#57667c]">Aktif 30 hari terakhir</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="text-[11px] font-bold text-[#738196] uppercase flex items-center justify-between">
-            <span>Analisis Riset</span>
-            <Activity className="w-4 h-4 text-[#7c3aed]" />
-          </div>
-          <div className="text-3xl font-black text-[#243149]">{displayAnalyses}+</div>
-          <p className="text-[11px] text-[#57667c]">Komputasi ilmiah berjalan</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="text-[11px] font-bold text-[#738196] uppercase flex items-center justify-between">
-            <span>Total Revenue</span>
-            <DollarSign className="w-4 h-4 text-[#3984f5]" />
-          </div>
-          <div className="text-2xl font-black text-[#243149]">
-            Rp 3 Juta
-          </div>
-          <p className="text-[11px] text-[#57667c]">Akumulasi transaksi</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="text-[11px] font-bold text-[#738196] uppercase flex items-center justify-between">
-            <span>Retensi Pengguna</span>
-            <Sparkles className="w-4 h-4 text-amber-500" />
-          </div>
-          <div className="text-3xl font-black text-[#243149]">{displayRetention}%</div>
-          <p className="text-[11px] text-[#57667c]">Aktif kembali &gt; 30 hari</p>
-        </div>
-      </div>
+      {/* 5 Main Growth Metric Cards with Interactive Modals */}
+      <AdminTractionKpiCards
+        displayUsers={displayUsers}
+        displayMau={displayMau}
+        displayAnalyses={displayAnalyses}
+        displayRevenue={displayRevenue}
+        displayRetention={displayRetention}
+      />
 
       {/* Target Skalabilitas & Dampak Ekosistem Riset */}
       <div className="bg-white rounded-2xl border border-[#e9edf3] p-6 shadow-sm space-y-6">
