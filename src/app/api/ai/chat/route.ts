@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Format pesan tidak valid." }, { status: 400 });
     }
 
-    // 1. Quota check based on Plan (Brief Section 5)
+    // 1. Quota check based on Plan tier
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

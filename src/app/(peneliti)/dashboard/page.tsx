@@ -134,7 +134,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {/* Right Graphic Mockups (matching screenshot) */}
+        {/* Right Graphic Preview */}
         <div className="relative w-full max-w-sm md:w-[320px] h-[160px] hidden sm:block shrink-0">
           {/* Top floating card */}
           <div className="absolute right-0 top-0 bg-white/95 backdrop-blur-sm rounded-xl border border-[#dce6f2] shadow-sm p-3.5 w-64 z-10">

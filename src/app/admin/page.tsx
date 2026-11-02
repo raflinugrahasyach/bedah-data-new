@@ -60,7 +60,7 @@ export default async function AdminPage() {
             href="/admin/traction"
             className="px-3.5 py-2 bg-[#edf5ff] text-[#3984f5] hover:bg-[#d6e6fe] font-bold text-xs rounded-xl transition-all"
           >
-            Lihat Traction Pitch Deck &rarr;
+            Lihat Traksi &amp; Performa &rarr;
           </Link>
         </div>
       </div>
@@ -217,10 +217,10 @@ export default async function AdminPage() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-[16px] font-bold text-[#243149]">
-              Empat Jalur Pendapatan (B2C, B2B2C, B2B)
+              Empat Jalur Pendapatan Platform
             </h3>
             <p className="text-[13px] text-[#738196] mt-0.5">
-              Pemisahan pendapatan sesuai slide Business Model dan spesifikasi Brief Bagian 5.
+              Distribusi arus kas platform berdasarkan langganan SaaS, lisensi institusi, add-on fitur, dan program pelatihan.
             </p>
           </div>
           <Link

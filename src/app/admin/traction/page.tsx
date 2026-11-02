@@ -66,7 +66,7 @@ export default async function AdminTractionPage() {
         <div>
           <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-[0.16em] text-[#3984f5] uppercase mb-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#3984f5]" />
-            <span>METRIK PITCH DECK &amp; TRACTION</span>
+            <span>PERFORMA &amp; TRAKSI PERTUMBUHAN</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#243149] tracking-tight">
             Traction &amp; Impact<span className="text-[#3984f5]">.</span>
@@ -82,12 +82,12 @@ export default async function AdminTractionPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#3984f5] hover:bg-[#2672df] text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Ekspor Data Pitch Deck (CSV/PDF)</span>
+            <span>Ekspor Laporan Performa (CSV/PDF)</span>
           </button>
         </div>
       </div>
 
-      {/* 5 Main Pitch Deck Metric Cards */}
+      {/* 5 Main Growth Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
           <div className="text-[11px] font-bold text-[#738196] uppercase flex items-center justify-between">
@@ -137,15 +137,15 @@ export default async function AdminTractionPage() {
         </div>
       </div>
 
-      {/* Target Dampak Setelah Pendanaan */}
+      {/* Target Skalabilitas & Dampak Ekosistem Riset */}
       <div className="bg-white rounded-2xl border border-[#e9edf3] p-6 shadow-sm space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-extrabold text-sm text-[#243149]">
-              Target Dampak Setelah Pendanaan (Post-Funding Target)
+              Target Skalabilitas &amp; Dampak Ekosistem Riset
             </h3>
             <p className="text-xs text-[#57667c]">
-              Progres capaian metrik pertumbuhan saat ini dibandingkan proyeksi target pitch deck.
+              Progres capaian metrik pertumbuhan saat ini dibandingkan target proyeksi tahunan.
             </p>
           </div>
           <span className="text-xs bg-[#edf5ff] text-[#3984f5] px-2.5 py-1 rounded-lg font-bold">

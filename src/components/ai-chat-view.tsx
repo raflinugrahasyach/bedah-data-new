@@ -117,7 +117,7 @@ export function AiChatView({
     sendMessage(input);
   };
 
-  // 4 Default Prompt Chips from Brief
+  // Default Prompt Chips
   const promptChips = [
     {
       title: "Metode apa yang tepat untuk penelitian saya?",

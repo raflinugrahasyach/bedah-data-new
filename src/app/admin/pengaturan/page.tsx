@@ -33,7 +33,7 @@ export default function AdminSettingsPage() {
           Pengaturan Admin<span className="text-[#3984f5]">.</span>
         </h1>
         <p className="text-[13.5px] text-[#57667c] mt-0.5">
-          Kontrol saklar fitur global, otentikasi akun demo investor, dan keamanan sistem.
+          Kontrol konfigurasi fitur global, otentikasi akun demo, dan manajemen keamanan platform.
         </p>
       </div>
 
@@ -49,10 +49,10 @@ export default function AdminSettingsPage() {
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h3 className="font-extrabold text-sm text-[#243149]">
-              Saklar Cepat Akun Demo (Investor / Mitra)
+              Tampilkan Kartu Akun Demo pada Halaman Masuk
             </h3>
             <p className="text-xs text-[#57667c] max-w-xl">
-              Mengontrol apakah card &quot;Masuk Cepat Demo&quot; (Peneliti &amp; Super Admin) ditampilkan di halaman Login publik. Matikan saklar ini saat website dipublikasikan secara komersial luas.
+              Mengontrol apakah kartu jalan pintas akun demo ditampilkan pada halaman masuk untuk mempermudah evaluasi fitur.
             </p>
           </div>
 

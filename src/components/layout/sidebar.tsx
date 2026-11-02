@@ -95,7 +95,7 @@ export function Sidebar({ projectCount = 4 }: SidebarProps) {
                 Ruang Penelitian
               </div>
               <div className="text-[11px] text-[#738196] leading-tight">
-                {isDemoMode ? "Mode contoh" : "Ruang kerja pribadi"}
+                Ruang kerja pribadi
               </div>
             </div>
           </div>

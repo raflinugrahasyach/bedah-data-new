@@ -127,7 +127,7 @@ export function ProjectWorkspaceView({ project }: ProjectWorkspaceViewProps) {
             {project.description && (
               <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 space-y-2 shadow-sm">
                 <div className="text-[11px] font-bold uppercase tracking-wider text-[#738196]">
-                  Latar Belakang &amp; Catatan
+                  Latar Belakang &amp; Deskripsi Penelitian
                 </div>
                 <p className="text-xs text-[#57667c] leading-relaxed">
                   {project.description}
