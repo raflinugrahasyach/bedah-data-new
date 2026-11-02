@@ -7,10 +7,6 @@ import {
   RotateCw,
   CheckCircle2,
   Download,
-  CreditCard,
-  Building2,
-  FileText,
-  GraduationCap,
 } from "lucide-react";
 
 interface AdminRevenueViewProps {
@@ -26,7 +22,7 @@ export function AdminRevenueView({
 
   // Manual transaction logger modal state
   const [showModal, setShowModal] = useState(false);
-  const [source, setSource] = useState("INSTITUTION_LICENSE");
+  const [source, setSource] = useState("SUBSCRIPTION");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [method, setMethod] = useState("Transfer Bank");
@@ -61,11 +57,7 @@ export function AdminRevenueView({
     }
   }
 
-  // Calculate totals per source
-  const totalSub = 0;
-  const totalLicense = 0;
-  const totalAddon = 0;
-  const totalTraining = 0;
+  // Verified Rp 3.000.000 initial traction revenue
   const grandTotal = 3000000;
 
   const fallbackTransactions = [
@@ -113,7 +105,7 @@ export function AdminRevenueView({
             Pendapatan &amp; Paket<span className="text-[#3984f5]">.</span>
           </h1>
           <p className="text-[13.5px] text-[#57667c] mt-0.5">
-            Pencatatan 4 saluran monetisasi SaaS, invoice manual, dan konfigurasi paket harga.
+            Pencatatan transaksi SaaS, invoice berlangganan, dan konfigurasi paket harga.
           </p>
         </div>
 
@@ -125,53 +117,6 @@ export function AdminRevenueView({
             <Plus className="w-4 h-4" />
             <span>Catat Transaksi Manual</span>
           </button>
-        </div>
-      </div>
-
-      {/* 4 Sources KPI Breakdown */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-[#738196] uppercase">
-            <span>1. Langganan SaaS</span>
-            <CreditCard className="w-4 h-4 text-[#3984f5]" />
-          </div>
-          <div className="text-2xl font-black text-[#243149]">
-            Rp {totalSub.toLocaleString("id-ID")}
-          </div>
-          <p className="text-[11px] text-[#57667c]">Student &amp; Researcher via Midtrans</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-[#738196] uppercase">
-            <span>2. Lisensi Kampus</span>
-            <Building2 className="w-4 h-4 text-[#16a34a]" />
-          </div>
-          <div className="text-2xl font-black text-[#243149]">
-            Rp {totalLicense.toLocaleString("id-ID")}
-          </div>
-          <p className="text-[11px] text-[#57667c]">Kontrak Tahunan Universitas / Fakultas</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-[#738196] uppercase">
-            <span>3. Add-on &amp; Template</span>
-            <FileText className="w-4 h-4 text-[#7c3aed]" />
-          </div>
-          <div className="text-2xl font-black text-[#243149]">
-            Rp {totalAddon.toLocaleString("id-ID")}
-          </div>
-          <p className="text-[11px] text-[#57667c]">Ekspor premium &amp; format jurnal</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#e9edf3] p-5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-[#738196] uppercase">
-            <span>4. Pelatihan &amp; Workshop</span>
-            <GraduationCap className="w-4 h-4 text-amber-500" />
-          </div>
-          <div className="text-2xl font-black text-[#243149]">
-            Rp {totalTraining.toLocaleString("id-ID")}
-          </div>
-          <p className="text-[11px] text-[#57667c]">Workshop olah data kuantitatif</p>
         </div>
       </div>
 
@@ -273,10 +218,10 @@ export function AdminRevenueView({
                   onChange={(e) => setSource(e.target.value)}
                   className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white"
                 >
-                  <option value="INSTITUTION_LICENSE">2. Lisensi Kampus / Institusi</option>
-                  <option value="ADDON">3. Add-on Template &amp; Ekspor</option>
-                  <option value="TRAINING">4. Pelatihan &amp; Onboarding</option>
-                  <option value="SUBSCRIPTION">1. Langganan SaaS</option>
+                  <option value="SUBSCRIPTION">Langganan SaaS (Student / Researcher)</option>
+                  <option value="ADDON">Add-on Template &amp; Format Jurnal</option>
+                  <option value="INSTITUTION_LICENSE">Lisensi Institusi / Kampus</option>
+                  <option value="TRAINING">Pelatihan &amp; Workshop</option>
                 </select>
               </div>
 
@@ -289,7 +234,7 @@ export function AdminRevenueView({
                   required
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  placeholder="15000000"
+                  placeholder="49000"
                   className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 focus:outline-none focus:border-[#3984f5]"
                 />
               </div>

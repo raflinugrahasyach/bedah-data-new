@@ -9,17 +9,17 @@ interface BrandLogoProps {
 
 export function BrandLogo({ className = "", size = "md", href = "/" }: BrandLogoProps) {
   const sizeClasses = {
-    sm: "h-7 w-auto",
-    md: "h-9 w-auto sm:h-10",
-    lg: "h-11 w-auto sm:h-12",
-    xl: "h-14 w-auto",
+    sm: "h-8 w-auto",
+    md: "h-10 w-auto sm:h-11",
+    lg: "h-11 w-auto sm:h-12 md:h-13",
+    xl: "h-13 w-auto sm:h-15 md:h-16",
   };
 
   const dimensions = {
-    sm: { width: 168, height: 28 },
-    md: { width: 216, height: 36 },
-    lg: { width: 264, height: 44 },
-    xl: { width: 312, height: 52 },
+    sm: { width: 192, height: 32 },
+    md: { width: 240, height: 40 },
+    lg: { width: 288, height: 48 },
+    xl: { width: 336, height: 56 },
   };
 
   const { width, height } = dimensions[size];

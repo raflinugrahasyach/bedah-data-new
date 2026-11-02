@@ -24,8 +24,8 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-[#f8faff] text-[#243149]">
       {/* Super Admin Topbar */}
       <header className="bg-white border-b border-[#e9edf3] px-6 lg:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-8">
-          <BrandLogo size="lg" href="/admin" />
+        <div className="flex items-center gap-6 xl:gap-8 min-w-0">
+          <BrandLogo size="lg" href="/admin" className="shrink-0" />
           <nav className="hidden lg:flex items-center gap-5 text-[12.5px] font-semibold text-[#57667c]">
             <Link href="/admin" className="hover:text-[#3984f5] transition-colors">
               Ringkasan
