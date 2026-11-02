@@ -1,0 +1,807 @@
+BRIEF PENGEMBANGAN WEBSITE
+Bedah Data
+AI-powered research data platform untuk
+mahasiswa, dosen, dan researcher Indonesia
+Dokumen ini berisi:
+Penjelasan alur website dari awal sampai akhir
+Tampilan peneliti (user) dan tampilan Super Admin
+Paket, harga, dan pembagian fitur yang sudah disetujui
+Daftar fitur, aturan data, dan keamanan
+Hal-hal yang masih perlu disiapkan sebelum dibangun
+Untuk: tim developer / partner pembangun website
+Versi: 1.0 (gabungan brief awal + revisi)  |  1 November 2026
+Domain: bedahdata.id
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 2
+BAGIAN
+Daftar Isi.
+1
+Gambaran umum website
+2
+Gaya tampilan
+3
+Peta halaman
+4
+Login, daftar, dan akun demo
+5
+Paket dan harga
+6
+Mode contoh dan akun asli
+7
+Ruang kerja peneliti, halaman demi halaman
+8
+Alur lengkap seorang peneliti
+9
+Panel Super Admin
+10
+Hak akses dan keamanan
+11
+Syarat teknis
+12
+Daftar persiapan sebelum mulai
+13
+Kamus istilah singkat
+Cara memakai dokumen ini
+Dokumen ini sudah menggabungkan brief pertama dan semua revisi (harga, format upload, akses admin,
+domain). Jadi cukup baca dokumen ini saja. Referensi tampilan: file PDF contoh website lama dan slide pitch
+deck Bedah Data (slide Solution, Business Model, dan Traction and Impact).
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 3
+BAGIAN 1
+Gambaran umum website.
+Bedah Data adalah AI-powered research data platform untuk mahasiswa, dosen, dan researcher di
+Indonesia. Di sini user bisa mengerjakan seluruh proses analisis data dalam satu workflow: upload data
+mentah, analisis, validasi hasil, sampai generate report yang siap pakai. Tanpa coding dan tanpa
+pindah-pindah tools.
+Tiga langkah inti (sesuai slide Solution)
+1.Upload data riset dalam bentuk file CSV atau Excel.
+2.Tanya dan analisis dengan AI. AI membantu memilih metode, lalu analisis dijalankan.
+3.Dapatkan insight. Hasil berupa tabel, grafik interaktif, dan laporan akademik yang bisa di-download.
+Kalimat andalan di slide: "Satu Platform AI untuk Mengubah Data Riset Menjadi Insight Siap Pakai."
+Satu website, dua tampilan
+Website-nya cuma satu dan login-nya juga satu. Tampilan yang muncul tergantung jenis akun:
+Jenis akun
+Yang dilihat
+Fungsinya
+Peneliti (user)
+Ruang kerja riset
+Upload data, analisis, validasi, dan membuat report
+Super Admin
+Panel bisnis
+Melihat jumlah user, user aktif, pendapatan, traction, dan
+mengelola platform
+Nama dan logo
+Nama produk: Bedah Data. Asisten AI-nya bernama Bedah AI.
+Di PDF contoh website lama masih tertulis "BedaData" dan "Beda AI". Semua itu harus diganti menjadi
+"Bedah Data" dan "Bedah AI", termasuk di judul tab browser, email, dan footer.
+Logo yang dipakai adalah logo Bedah Data dari pitch deck (ikon grafik batang biru bergaya melengkung
+dan tulisan "Bedah Data"). Bukan logo teks yang ada di website contoh.
+Domain resmi: bedahdata.id.
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 4
+BAGIAN 2
+Gaya tampilan.
+Ikuti gaya website contoh di file PDF. Intinya: bersih, modern, dan terasa akademik-profesional.
+Banyak ruang putih. Warna utama biru (diambil dari logo), teks navy gelap, dan hijau untuk status
+"Tervalidasi".
+Card dengan sudut membulat, garis tepi tipis, dan bayangan halus.
+Font sans-serif modern (mirip Plus Jakarta Sans atau Inter).
+Judul halaman tebal dan diakhiri titik biru, contoh: "Proyek Penelitian."
+Setiap halaman dibuka dengan label kecil huruf kapital berjarak (contoh: "RUANG UNTUK TEMUAN
+BARU"), lalu judul besar, lalu satu kalimat penjelasan.
+Ikon bergaya garis (line icon) yang konsisten di semua halaman.
+Bahasa tampilan: Bahasa Indonesia campur istilah Inggris yang hangat dan memotivasi, misalnya "Yuk,
+lanjutkan penelitian hari ini". Istilah teknis tetap Inggris: upload, dashboard, export, filter, dan sebagainya.
+Format angka Indonesia: titik untuk ribuan (Rp49.000), koma untuk desimal pada tampilan.
+Harus responsive: nyaman di laptop, tablet, dan ponsel. Di layar kecil, sidebar berubah menjadi menu.
+BAGIAN 3
+Peta halaman.
+Area
+Halaman
+Publik (sebelum login)
+Login (sekaligus halaman pengenalan singkat), Daftar gratis, Lupa password, Paket dan
+Harga
+Ruang kerja Peneliti
+(sidebar kiri)
+1. Ruang Penelitian (dashboard)
+2. Proyek Penelitian
+3. Dataset Saya
+4. AI Methodology Advisor (chat Bedah AI)
+5. Analisis Statistik
+6. Validasi Penelitian
+7. Visualisasi dan Laporan
+8. Pusat Bantuan
+9. Pengaturan (profil dan langganan)
+Panel Super Admin
+Lihat Bagian 9
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 5
+BAGIAN 4
+Login, daftar, dan akun demo.
+Halaman login
+Halaman login punya dua bagian:
+Card login: ikon bintang, judul "Masuk ke ruang penelitian", subjudul "Satu akun untuk proyek, analisis, dan
+Bedah AI", kolom email, kolom password (dengan link "Lupa password?"), button Masuk, link "Baru di
+Bedah Data? Daftar gratis", dan catatan bahwa data penelitian bersifat pribadi.
+Bagian pengenalan di bawahnya: label "AI-POWERED RESEARCH PLATFORM", judul "Dari data mentah,
+menjadi temuan yang berarti.", dan daftar fitur: Analisis statistik otomatis, AI Methodology Advisor, Research
+Validation Engine, serta Visualisasi dan laporan.
+Menu atas (sebelum login): logo, "Paket dan Harga", dan button "Mulai gratis". Setelah login, muncul link ke
+Dashboard.
+Daftar akun baru
+Isian: nama, email, password, dan peran (mahasiswa, dosen, peneliti, atau institusi).
+Akun baru otomatis masuk paket Free.
+Wajib ada verifikasi email dan fitur reset password.
+Akun demo (klik langsung masuk)
+Di bagian bawah halaman login ada dua card akun demo. Klik card = langsung login. Fungsinya untuk
+presentasi ke investor dan mitra.
+Akun demo
+Email
+Masuk sebagai
+Peneliti Riset
+peneliti@bedahdata.id
+Dashboard riset: proyek, analisis statistik, dan validasi
+Super Admin SaaS
+admin@bedahdata.id
+Panel penjualan: pendapatan, pelanggan, dan
+performa paket
+Penting
+Jangan memakai password yang tertulis di PDF contoh. Buat password baru, simpan di environment variable
+(bukan di kode), dan sediakan toggle untuk mematikan akun demo saat website sudah dipakai publik.
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 6
+BAGIAN 5
+Paket dan harga.
+Ada empat paket, mengikuti slide Business Model. Harga di bawah sudah final.
+Paket
+Harga
+Untuk siapa
+Keterangan
+Free (Gratis)
+Rp0
+User baru
+Akses terbatas untuk mencoba
+fitur utama
+Student
+Rp49.000 / bulan
+Mahasiswa
+Akses fitur lengkap
+Researcher
+Rp99.000 / bulan
+Peneliti individual
+Fitur lanjutan
+Campus / Institutional
+Mulai Rp15.000.000 / tahun
+Kampus, fakultas, institusi
+pendidikan
+Lisensi institusi, harga bisa
+dinegosiasikan
+Aturan tampilan halaman harga
+Judul halaman: "Satu platform riset, untuk setiap tahap penelitian."
+Ada pilihan Bulanan / Tahunan untuk paket Student dan Researcher. Harga tahunan = bayar 10 bulan
+("hemat ~2 bulan"): Student Rp490.000/tahun, Researcher Rp990.000/tahun.
+Card Researcher diberi badge "Paling populer".
+Paket Campus tidak punya button bayar. Button-nya "Hubungi kami / Minta penawaran" yang membuka
+form (nama institusi, jumlah user, nama dan kontak PIC). Isi form masuk ke Panel Admin.
+Di bawahnya ada FAQ (daftar pertanyaan yang bisa dibuka-tutup): bisa coba dulu sebelum berlangganan?,
+cara pindah paket, ada komitmen jangka panjang?, metode pembayaran, dan keamanan data.
+Menu "Akses API (coming soon)" tetap ada, belum aktif.
+Footer: deskripsi singkat, link (Paket dan Harga, Dashboard, Pusat Bantuan), dan "© 2026 Bedah Data.
+Dibuat untuk rasa ingin tahu. Dibuat di Indonesia."
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 7
+Pembagian fitur per paket (sudah disetujui)
+Fitur
+Free
+Student
+Researcher
+Campus
+Proyek aktif
+1
+5
+Unlimited
+Unlimited
+Ukuran dataset
+Sampai 500
+baris
+Sampai 5.000
+baris
+Sampai 10.000 baris
+Sesuai kontrak
+(maks. 10.000)
+Statistik deskriptif dan visualisasi
+Ya
+Ya
+Ya
+Ya
+Korelasi, uji validitas, uji
+reliabilitas
+Limited
+Ya
+Ya
+Ya
+Regresi linier sederhana
+Limited
+Ya
+Ya
+Ya
+Regresi linier berganda dan uji
+asumsi klasik
+Tidak
+Ya
+Ya
+Ya
+Chat Bedah AI
+5
+message/hari
+30
+message/hari
+Unlimited harian (fair
+use)
+Unlimited (fair use)
+Research Validation Engine
+Dasar
+Penuh
+Penuh
+Penuh
+Export laporan
+Tidak ada
+PDF dan DOCX
+PDF dan DOCX +
+template premium
+PDF dan DOCX +
+template institusi
+Analisis lanjutan dan batch
+Tidak
+Tidak
+Ya
+Ya
+Dashboard multi-user dan
+monitoring
+Tidak
+Tidak
+Tidak
+Ya
+Pelatihan dan onboarding
+Tidak
+Tidak
+Tidak
+Ya
+Catatan teknis
+Semua limit di tabel ini dijaga di server, bukan hanya disembunyikan di tampilan. Angkanya harus mudah
+diubah oleh Admin lewat panel tanpa developer harus mengubah kode. Fitur yang terkunci menampilkan
+ajakan "Upgrade paket".
+Model bisnis yang harus tercermin di sistem
+Jalur
+Pelanggannya
+B2C
+Mahasiswa dan peneliti individual
+B2B2C
+Program studi, laboratorium, dan komunitas riset
+B2B
+Pelatihan dan onboarding, fakultas, dan institusi pendidikan
+Empat sumber pendapatan yang harus tercatat terpisah di database: (1) langganan bulanan/tahunan, (2)
+lisensi kampus/fakultas, (3) add-on template dan export premium, (4) pelatihan, workshop, dan onboarding.
+Add-on dan pelatihan belum perlu checkout otomatis di versi pertama; Admin mencatatnya manual.
+Pembayaran
+Student dan Researcher: payment gateway Indonesia (Midtrans atau Xendit): QRIS, VA bank, e-wallet.
+Paket aktif otomatis, invoice dikirim ke email.
+Campus: invoice manual dan transfer bank, dicatat oleh Admin.
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 8
+BAGIAN 6
+Mode contoh dan akun asli.
+Supaya orang bisa mencoba alur tanpa harus punya data sendiri, ada dua kondisi dashboard:
+Mode contoh
+Akun asli
+Untuk siapa
+Pengunjung dan user Free yang belum
+membuat proyek
+User yang sudah punya proyek sendiri
+Isi dashboard
+Terisi data sintetis (data buatan)
+Kosong: angka "00" dan tulisan "Belum ada
+proyek di sini"
+Badge pojok kanan
+"Mode contoh"
+"Ruang kerja pribadi"
+Perubahan disimpan?
+Tidak
+Ya
+Contoh data di mode contoh
+4 proyek, 4 dataset, 3 analisis selesai, 2 hasil tervalidasi (angka ini muncul di dashboard):
+Nama proyek
+Responden
+Metode
+Status
+Pengaruh Motivasi terhadap Hasil Belajar
+120
+Regresi Linear Sederhana
+Tervalidasi
+Hubungan Durasi Belajar dan Prestasi
+85
+Korelasi Pearson
+Tervalidasi
+Survei Pengalaman Belajar Mahasiswa
+64
+Statistik Deskriptif
+Selesai
+Evaluasi Pembelajaran Digital
+150
+Regresi Linear Sederhana
+Dalam proses
+Dataset contoh "Pengaruh Motivasi terhadap Hasil Belajar" punya kolom: no, responden, motivasi belajar, hasil
+belajar, jam belajar.
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 9
+BAGIAN 7
+Ruang kerja peneliti, halaman demi halaman.
+7.1 Ruang Penelitian (Dashboard)
+Susunan dari atas ke bawah:
+1.Label "RUANG UNTUK TEMUAN BARU" dan sapaan "Selamat datang, {Nama}." Di bawahnya: "Ide
+besar Anda dimulai dari data. Yuk, lanjutkan penelitian hari ini."
+2.Card utama "Partner cerdas penelitian Anda": judul "Riset lebih mudah. Insight lebih bermakna.", button
+Mulai penelitian, dan ilustrasi card grafik di kanan.
+3.Ringkasan penelitian: empat card angka yang bisa diklik ke halaman terkait: Total Proyek, Dataset
+Tersimpan, Analisis Selesai, Hasil Tervalidasi.
+4.Proyek penelitian terbaru: tabel (nama proyek, metode, status) dengan link "Lihat semua". Jika kosong,
+tampil ajakan "Buat proyek".
+5.Asisten riset Anda (Bedah AI): tiga shortcut: Temukan metode yang tepat, Biar data yang berbicara,
+Pastikan hasilnya konsisten.
+6.Data Anda, dalam perspektif: grafik distribusi data (histogram) dengan filter: Semua proyek / Dalam
+proses / Tervalidasi.
+7.Perjalanan penelitian: penanda progres (Dalam proses, Analisis selesai, Tervalidasi) dan persentase yang
+sudah tervalidasi.
+7.2 Proyek Penelitian
+Judul "Proyek Penelitian." dengan kalimat "Setiap pertanyaan punya tempat. Kelola semua penelitian Anda
+di sini."
+Ada button Proyek baru, search box judul, dan filter status.
+Tabel berisi: nama proyek (plus jumlah responden dan variabel), metode analisis, status, dan tanggal
+diperbarui. Urutan status: Dalam proses, Selesai, Tervalidasi.
+Membuat proyek (langkah singkat): judul, deskripsi, pertanyaan atau hipotesis penelitian, lalu pilih dataset
+(upload baru atau pakai yang sudah tersimpan).
+Halaman detail proyek adalah pusat kerja satu penelitian: ringkasan, dataset yang terhubung, riwayat
+analisis, hasil, status validasi, dan laporan.
+7.3 Dataset Saya
+Button Upload dataset. Jika kosong tampil "Upload dataset pertama".
+Format yang didukung: CSV, XLSX, dan XLS (Excel). File SPSS (.sav) tidak didukung.
+Untuk CSV, pemisah koma, titik koma, atau tab dikenali otomatis.
+Untuk Excel yang punya banyak sheet, user memilih sheet yang dipakai.
+Aturan data (tampilkan di halaman upload dan Pusat Bantuan)
+Baris pertama = nama variabel, tidak boleh ada nama kembar.
+Satu baris = satu responden/observasi.
+Isi angka tanpa simbol % atau satuan. Desimal memakai titik.
+Maksimal 10 MB, 50 kolom, dan 10.000 baris per proyek.
+Warning jelas: jangan upload identitas responden atau data sensitif. Ganti nama dengan kode
+responden.
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 10
+Setelah file di-upload, tampilkan
+Preview tabel (contoh 100 baris pertama, dengan catatan "Menampilkan 100 dari 120 baris. Analisis
+menggunakan seluruh data yang valid").
+Tipe variabel yang terdeteksi otomatis (numerik, kategorik, atau ordinal) dan bisa diubah user.
+Ringkasan kualitas data: jumlah baris, jumlah variabel, missing value, duplikat, dan outlier.
+Pilihan menangani missing value: hapus barisnya, atau isi dengan rata-rata/median.
+Button Analisis dataset untuk lanjut ke analisis.
+7.4 AI Methodology Advisor (chat Bedah AI)
+Halaman chat dengan tampilan sebagai berikut:
+Bagian atas: "Bedah AI" dengan badge "Methodology Advisor" dan tulisan "Partner diskusi untuk pertanyaan
+penelitian Anda."
+Layar awal: ikon bintang, label "TEMAN BERPIKIR, BUKAN PENGGANTI PENELITI", judul "Setiap riset
+dimulai dari pertanyaan yang baik."
+Empat saran pertanyaan yang bisa diklik (klik = langsung terkirim):
+-Metode apa yang tepat untuk penelitian saya?
+-Apa perbedaan korelasi dan regresi?
+-Bagaimana memeriksa asumsi analisis?
+-Bantu saya merumuskan hipotesis.
+Kolom ketik: "Apa yang ingin Anda teliti hari ini?" dengan checkbox "Sertakan ringkasan proyek aktif"
+(kalau dicentang, AI ikut membaca variabel dan tujuan proyek).
+Tulisan tetap di bawah: "AI dapat keliru. Verifikasi saran dan hasil bersama dosen atau pembimbing Anda."
+Cara kerja AI (harus benar-benar menjawab sendiri)
+Terhubung ke layanan AI sungguhan (API), jawaban muncul bertahap seperti mengetik (streaming).
+Bisa menjawab soal metodologi: memilih uji yang cocok, menjelaskan asumsi, membantu menyusun
+hipotesis, dan membaca hasil.
+Kalau ringkasan proyek disertakan, jawabannya berdasarkan data nyata user. Contoh: "Data Anda punya 1
+variabel bebas dan 1 variabel terikat berupa angka, jadi regresi linier sederhana cocok."
+Bisa menjelaskan hasil analisis dengan bahasa awam maupun bahasa akademik.
+Sikapnya sebagai teman berpikir: menjelaskan alasan, menyebut asumsi, dan jujur soal keterbatasan.
+Tidak menggantikan peneliti.
+Riwayat percakapan disimpan per akun dan per proyek.
+Ada limit message per hari sesuai paket, lengkap dengan counter sisa kuota.
+Aturan penting
+AI tidak boleh menghitung angka statistik sendiri. Semua angka berasal dari calculation engine di server (lihat
+7.5). AI hanya membaca dan menjelaskan angka tersebut. Ini mencegah angka karangan.
+7.5 Analisis Statistik
+Kalau belum punya dataset, halaman menampilkan ajakan "Mulai dengan satu dataset" dan button "Buka
+proyek penelitian". Kalau sudah ada, user memilih proyek, dataset, dan metode. Atau tekan button
+"Rekomendasikan metode" supaya Bedah AI yang memilihkan.
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 11
+Delapan modul analisis yang wajib ada
+Modul
+Isi dan hasil yang ditampilkan
+1. Statistik deskriptif
+Jumlah data, rata-rata, median, modus, standard deviation, variance, min dan max, range,
+quartile, skewness, dan kurtosis. Untuk data kategori: frekuensi dan persentase.
+2. Visualisasi data
+Histogram, boxplot, diagram batang dan pie, scatter plot (dengan garis regresi), heatmap
+korelasi, dan grafik garis. Grafik interaktif (bisa hover dan zoom), bisa di-download sebagai
+gambar PNG, dan bisa dimasukkan ke laporan.
+3. Uji validitas
+Untuk kuesioner. Setiap butir dikorelasikan dengan skor total (Pearson). Bandingkan r hitung
+dengan r tabel (derajat bebas = n dikurangi 2, taraf signifikansi 0,05) atau lihat nilai
+signifikansinya. Tiap butir diberi label Valid / Tidak Valid.
+4. Uji reliabilitas
+Cronbach's Alpha. Patokan umum: 0,70 atau lebih = reliabel. Ada tabel "Alpha jika butir
+dihapus" dan korelasi butir-total. AI menyarankan butir yang sebaiknya dibuang.
+5. Korelasi Pearson
+Matriks nilai r, nilai p, dan penjelasan kekuatan hubungan. (Opsional: Spearman untuk data
+berurutan.)
+6. Regresi linier
+sederhana
+1 variabel bebas dan 1 variabel terikat. Hasil: persamaan regresi, koefisien (B, standard error, t,
+p), R kuadrat, Adjusted R kuadrat, uji F, dan tabel ANOVA.
+7. Regresi linier berganda
+Beberapa variabel bebas. Hasil sama seperti di atas, ditambah standardized coefficient (Beta),
+uji parsial (t), uji simultan (F), serta VIF/Tolerance untuk cek multikolinearitas.
+8. Uji asumsi klasik
+Otomatis menyertai regresi: normalitas residual (Shapiro-Wilk atau Kolmogorov-Smirnov, plus
+grafik P-P atau Q-Q), heteroskedastisitas (Glejser atau Breusch-Pagan, plus grafik residual),
+autokorelasi (Durbin-Watson), dan multikolinearitas (khusus berganda).
+Setiap hasil analisis ditampilkan dalam bentuk
+Tabel bergaya jurnal ilmiah.
+Grafik pendukung.
+Interpretasi otomatis dalam Bahasa Indonesia dari Bedah AI. Contoh: "Motivasi berpengaruh positif dan
+signifikan terhadap hasil belajar (p kurang dari 0,05); motivasi menjelaskan sekian persen variasi hasil
+belajar."
+Warning kalau ada asumsi yang tidak terpenuhi, disertai saran tindak lanjut.
+Seluruh perhitungan dijalankan di backend memakai library statistik yang tepercaya (misalnya Python: pandas,
+scipy, statsmodels, pingouin).
+7.6 Validasi Penelitian (Research Validation Engine)
+Ini fitur pembeda utama. Tagline halamannya: "Periksa konsistensi perhitungan sebelum melangkah lebih
+jauh."
+Setelah analisis selesai, mesin validasi menghitung ulang secara terpisah (memakai library atau cara
+hitung yang berbeda) lalu membandingkan hasilnya dengan toleransi sangat kecil.
+Jika cocok: status proyek menjadi Tervalidasi dengan badge hijau dan tulisan "Lolos pemeriksaan
+komputasi". Angkanya masuk ke card "Hasil Tervalidasi" di dashboard.
+Jika berbeda: tampilkan detail selisihnya dan tandai untuk ditinjau.
+Juga memeriksa kelengkapan data, kecukupan jumlah sampel, dan terpenuhinya asumsi.
+Menghasilkan laporan validasi berupa daftar cek lulus/gagal yang ikut masuk ke laporan akhir.
+Sebelum ada dataset: tampil ajakan "Mulai dengan satu dataset".
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 12
+7.7 Visualisasi dan Laporan
+Kalimat halaman: "Tinjau temuan, jelajahi visualisasi, dan bagikan hasil penelitian."
+Galeri semua grafik dan tabel dari analisis dalam satu proyek.
+Auto report builder dengan susunan akademik: tujuan penelitian, gambaran data, metode analisis, hasil
+(tabel dan grafik), interpretasi hasil, kesimpulan, dan lampiran validasi.
+User bisa memilih bagian yang dimasukkan, mengedit teks, dan mengatur judul.
+Export ke PDF dan DOCX (format akademik, siap untuk skripsi, tesis, atau publikasi). Format yang tersedia
+mengikuti paket (lihat Bagian 5). User Free tidak punya akses export.
+Berbagi lewat link baca-saja: pengembangan tahap berikutnya.
+7.8 Pusat Bantuan
+Judul: "Riset lebih terarah, mulai dari sini." Isinya empat langkah:
+1.Siapkan data penelitian: "Siapkan data dalam format CSV atau Excel (.xlsx/.xls)." Lalu aturan format dan
+limit file (lihat 7.3). Boleh ditambah tips: "User SPSS bisa export data ke Excel atau CSV terlebih dahulu."
+2.Tentukan tujuan dan metode.
+3.Jalankan dan tinjau analisis.
+4.Validasi dan buat laporan.
+Ditambah button "Tanya Bedah AI" dan bagian Privasi dan penyimpanan: proyek pribadi hanya bisa diakses
+oleh pemilik akun; mode contoh memakai data sintetis dan perubahannya tidak disimpan.
+7.9 Pengaturan
+Profil peneliti: nama lengkap, email akun (hanya bisa dibaca), warning privasi data, dan button "Simpan
+perubahan".
+Langganan dan paket: "Kelola langganan saya" (status, tanggal perpanjangan, ganti atau batalkan paket,
+riwayat pembayaran) dan "Lihat semua paket dan harga".
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 13
+BAGIAN 8
+Alur lengkap seorang peneliti.
+Ini urutan yang dialami user dari awal sampai akhir. Developer bisa memakainya sebagai skenario uji.
+Langkah
+Yang dilakukan user
+Yang terjadi di sistem
+1
+Daftar atau login
+Masuk ke dashboard (mode contoh atau kosong)
+2
+Klik Mulai penelitian, lalu Buat proyek
+Proyek baru tersimpan dengan status Dalam proses
+3
+Upload dataset (CSV/Excel)
+Sistem memeriksa format, kualitas data, dan
+menebak tipe variabel
+4
+(Opsional) Tanya Bedah AI dengan centang "Sertakan
+ringkasan proyek aktif"
+AI menyarankan metode berdasarkan variabel yang
+ada
+5
+Buka Analisis Statistik, pilih metode (atau ikuti saran
+AI), lalu jalankan
+Backend menghitung memakai library statistik
+6
+Lihat tabel, grafik, interpretasi otomatis, dan uji asumsi
+Hasil disimpan; status berubah menjadi Selesai
+7
+Jalankan Validasi
+Mesin hitung ulang; jika cocok, status menjadi
+Tervalidasi
+8
+Buka Visualisasi dan Laporan, susun, edit, lalu export
+PDF/DOCX
+File laporan dibuat dan bisa di-download
+9
+Kembali ke dashboard
+Angka proyek, dataset, analisis selesai, dan hasil
+tervalidasi terbarui otomatis
+BAGIAN 9
+Panel Super Admin.
+Setelah login sebagai admin, tampilannya berbeda: sidebar khusus bisnis dan tidak ada ruang kerja analisis.
+Panel ini sama seperti card demo "Panel penjualan: pendapatan, pelanggan, dan performa paket SaaS".
+9.1 Ringkasan (Dashboard Admin)
+Card angka dengan filter periode (bulan ini, 3 bulan, atau kustom):
+Total user terdaftar (semua yang pernah memakai website).
+Monthly active user (MAU), ditambah aktif harian dan mingguan.
+Total analisis yang sudah dijalankan.
+Pendapatan: total, monthly recurring revenue (MRR), dan pendapatan per paket.
+Konversi user Free ke Student/Researcher, jumlah institusi aktif, dan churn rate.
+Retensi 30 hari (berapa persen user yang kembali aktif).
+Grafik tren: pendaftar, user aktif, analisis, dan pendapatan per bulan; komposisi user per paket; user baru
+per hari.
+9.2 Traction dan Impact
+Halaman ini meniru slide Traction and Impact, tetapi angkanya harus dihitung otomatis dari database,
+bukan angka tetap. Angka di slide hanyalah contoh tampilan.
+Metrik
+Contoh di slide
+Cara menghitung
+User terdaftar
+350+
+Semua akun (gratis dan berbayar)
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 14
+Metrik
+Contoh di slide
+Cara menghitung
+Monthly active user
+150+
+Akun yang aktif dalam 30 hari terakhir
+Analisis dijalankan
+560+
+Jumlah analisis yang pernah dijalankan
+Revenue awal
+Rp3 juta
+Total semua transaksi sejak monetisasi (termasuk yang
+dicatat manual)
+Retensi awal
+73%
+User yang kembali aktif dalam 30 hari
+Tampilkan juga periode data, klien awal / institusi (contoh di slide: ITS, Universitas Airlangga, UNESA, UIN
+Sunan Ampel, PENS, Maharddhika; dikelola dari menu Institusi), dan sebaran user menurut peran
+(mahasiswa, dosen, institusi).
+Target dampak setelah pendanaan dengan progress bar. Contoh di slide: 1.500+ user terdaftar, 1.000+
+user aktif, 3 pilot kampus, 2.000+ analisis.
+Sediakan button export (PDF, gambar, atau CSV) supaya angka bisa langsung dipakai di pitch deck.
+9.3 User Management
+Tabel semua user: nama, email, peran, paket, tanggal daftar, aktivitas terakhir, jumlah proyek/analisis, dan
+status. Ada pencarian, filter, dan export.
+Halaman detail user: riwayat langganan, pemakaian AI (jumlah pesan), dan aktivitas.
+Admin bisa menangguhkan, mengaktifkan, dan mengganti paket user secara manual.
+9.4 Data Platform (hanya metadata)
+Admin bisa melihat daftar semua proyek, dataset, dan analisis dari seluruh user, tetapi hanya informasi
+pendukungnya (metadata), bukan isi datanya.
+Boleh dilihat Admin
+Tidak boleh dilihat dan tidak boleh ada button-nya
+Judul proyek, nama pemilik, metode analisis, status, tanggal
+dibuat/diperbarui, jumlah baris dan kolom, ukuran dan jenis
+file, jumlah analisis
+Isi tabel dataset, nilai responden, angka hasil analisis milik
+user, dan isi percakapan Bedah AI
+Aturan ini dipaksa di backend: API admin tidak boleh mengirim isi dataset sama sekali. Menyembunyikan di
+tampilan saja tidak cukup.
+Setiap akses admin ke halaman data user dicatat di audit log (siapa, kapan, apa).
+Sesuai janji di Pusat Bantuan: "proyek pribadi hanya dapat diakses oleh akun pemilik". Tuliskan juga di
+Kebijakan Privasi.
+Opsional untuk versi pertama: button "Bagikan proyek ke dukungan" bagi user yang butuh bantuan teknis.
+Izinnya sementara, bisa dicabut, dan tercatat di audit log.
+9.5 Pendapatan dan Langganan
+Daftar transaksi (status, metode bayar, invoice), langganan aktif/kedaluwarsa/dibatalkan, MRR, dan ARR.
+Pendapatan dipecah menurut empat sumber: langganan, lisensi institusi, add-on template/export, dan
+pelatihan/onboarding.
+Admin bisa mencatat transaksi manual (untuk add-on, pelatihan, dan invoice Campus).
+Pengelolaan paket: ubah harga, ubah limit fitur, dan buat kode promo.
+Export laporan keuangan.
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 15
+9.6 Permintaan Penawaran (Campus)
+Daftar form yang masuk dari paket Campus, dengan status: Baru, Dihubungi, Negosiasi, Deal / Batal.
+Kalau Deal, Admin membuat institusi baru dan mengisi nilai kontrak tahunan, jumlah kursi, dan tanggal
+berakhir.
+9.7 Institusi / Klien
+Kelola kampus mitra: nama, logo, jumlah anggota, paket, dan status pilot.
+Logo institusi di sini juga dipakai di halaman Traction.
+9.8 Useran AI dan Operasional
+Jumlah message AI per hari dan per user, perkiraan biaya API, topik pertanyaan populer, dan jenis analisis
+yang paling sering dipakai.
+Catatan aktivitas sistem dan kotak masuk umpan balik user.
+9.9 Pengaturan Admin
+Kelola akun admin dan perannya.
+Template email.
+Saklar akun demo (aktif/nonaktif).
+Isi FAQ dan Pusat Bantuan.
+Pengumuman untuk user.
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 16
+BAGIAN 10
+Hak akses dan keamanan.
+Peran akun: peneliti, admin, dan untuk paket Campus: anggota tim serta pemilik institusi.
+Semua halaman dan API dilindungi sesuai peran. Peneliti tidak boleh bisa membuka halaman admin,
+walaupun mengetik alamatnya langsung.
+Data user dienkripsi saat tersimpan dan saat dikirim (HTTPS). Setiap akun hanya bisa mengakses datanya
+sendiri.
+Setiap file upload diperiksa: jenis file, ukuran, dan pemeriksaan keamanan dasar.
+Ada rate limit untuk login dan chat AI supaya tidak disalahgunakan.
+Admin hanya melihat metadata (lihat 9.4) dan semua aksinya tercatat di audit log.
+Patuhi UU Pelindungan Data Pribadi: ada Kebijakan Privasi, persetujuan user, serta fitur hapus akun dan
+hapus data.
+Limit paket (Bagian 5) selalu diperiksa di server.
+BAGIAN 11
+Syarat teknis.
+Harus benar-benar berfungsi, bukan sekadar contoh gambar: semua button, form, upload file, chat AI,
+analisis, validasi, export, dan pembayaran bekerja dengan data nyata.
+Cepat: analisis dataset 10.000 baris selesai dalam hitungan detik, dengan tampilan loading yang jelas.
+Setiap halaman punya tampilan untuk kondisi kosong, loading, dan error. Pesan error yang ramah.
+Bahasa antarmuka: Indonesia, dengan istilah teknis tetap Inggris (upload, dashboard, export, filter, dll.).
+Saran teknologi (developer bebas memilih): frontend React/Next.js, backend Python (FastAPI) untuk mesin
+statistik, database PostgreSQL, penyimpanan file yang kompatibel S3, AI lewat API, dan payment gateway
+Indonesia (Midtrans/Xendit).
+Email sistem dikirim dari noreply@bedahdata.id (verifikasi, reset password, invoice). Email dukungan:
+support@bedahdata.id.
+BAGIAN 12
+Daftar persiapan sebelum mulai.
+Sudah diputuskan
+Hal
+Keputusan
+Harga dan paket
+Free Rp0, Student Rp49.000/bulan, Researcher Rp99.000/bulan, Campus mulai
+Rp15.000.000/tahun
+Harga tahunan
+Student Rp490.000, Researcher Rp990.000 (bayar 10 bulan)
+Pembagian fitur per paket
+Sesuai tabel di Bagian 5
+Akses admin ke data user
+Hanya metadata
+Format upload
+CSV dan Excel (XLSX/XLS). SPSS tidak didukung
+Domain
+bedahdata.id
+
+
+=====PAGE=====
+Bedah Data
+Brief Pengembangan Website
+bedahdata.id
+Halaman 17
+Masih harus disiapkan
+File logo Bedah Data dalam bentuk SVG atau PNG transparan, di-export dari Canva (pitch deck) dan
+dikirim ke partner.
+Password akun demo yang baru (jangan pakai yang ada di PDF contoh).
+Akun payment gateway (Midtrans atau Xendit) dan akun layanan AI (API key).
+Kebijakan Privasi dan Syarat Ketentuan (harus mencantumkan aturan metadata admin).
+Slide Solution di pitch deck masih menulis "CSV, Excel, SPSS". Sebaiknya disamakan dengan produk
+(hapus SPSS).
+BAGIAN 13
+Kamus istilah singkat.
+Untuk membantu memahami istilah statistik di dokumen ini.
+Istilah
+Artinya dengan bahasa sederhana
+Dataset
+Tabel data penelitian (misalnya jawaban kuesioner dari 120 responden)
+Variabel
+Satu kolom di tabel, misalnya "motivasi belajar"
+Statistik deskriptif
+Ringkasan data: rata-rata, nilai tengah, sebaran, dan sebagainya
+Uji validitas
+Mengecek apakah tiap pertanyaan kuesioner benar-benar mengukur hal yang dimaksud
+Uji reliabilitas
+Mengecek apakah kuesioner memberi hasil yang konsisten (diukur dengan Cronbach's
+Alpha)
+Korelasi
+Seberapa kuat dua hal berhubungan (belum tentu sebab-akibat)
+Regresi linier sederhana
+Mengukur pengaruh satu hal terhadap satu hal lain
+Regresi linier berganda
+Mengukur pengaruh beberapa hal sekaligus terhadap satu hal
+Variabel bebas / terikat
+Bebas = penyebab yang diuji. Terikat = hasil yang dipengaruhi
+Uji asumsi klasik
+Pemeriksaan syarat agar hasil regresi dapat dipercaya
+Multikolinearitas
+Kondisi ketika variabel bebas terlalu mirip satu sama lain
+Outlier
+Data yang nilainya terlalu jauh dari yang lain
+MAU / MRR / ARR
+Monthly active user / monthly recurring revenue / annual recurring revenue
+Retensi
+Persentase user yang kembali memakai website setelah pertama kali
+Metadata
+Informasi pendukung (judul, jumlah baris, tanggal), bukan isi datanya
+Audit log
+Catatan otomatis siapa melakukan apa dan kapan
+Data sintetis
+Data buatan untuk contoh, bukan data orang sungguhan

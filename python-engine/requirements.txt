@@ -1,0 +1,11 @@
+fastapi==0.115.8
+uvicorn[standard]==0.34.0
+pandas==2.2.3
+numpy>=1.26.0,<2.1.0
+scipy==1.14.1
+statsmodels==0.14.4
+pingouin==0.5.5
+openpyxl==3.1.5
+pydantic==2.10.6
+python-multipart==0.0.20
+

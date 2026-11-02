@@ -1,0 +1,44 @@
+[
+  {
+    "tag": "A",
+    "text": "Paket & Harga",
+    "href": "/plans",
+    "class": ""
+  },
+  {
+    "tag": "A",
+    "text": "Mulai gratis",
+    "href": "/plans",
+    "class": "button primary small-button"
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Peneliti\nRiset\nDashboard riset: proyek, analisis statistik & validasi penelitian.\npeneliti@bedadata.id · BedaData2026!",
+    "href": null,
+    "class": "demo-account"
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Super Admin\nSaaS\nPanel penjualan: pendapatan, pelanggan & performa paket SaaS.\nadmin@bedadata.id · BedaData2026!",
+    "href": null,
+    "class": "demo-account"
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Lupa kata sandi?",
+    "href": null,
+    "class": "text-button form-forgot"
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Masuk",
+    "href": null,
+    "class": "button primary"
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Daftar gratis",
+    "href": null,
+    "class": ""
+  }
+]

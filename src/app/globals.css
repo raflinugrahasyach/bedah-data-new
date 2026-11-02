@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 219 32% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 219 32% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 219 32% 17%;
+    --primary: 215 88% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 100% 97%;
+    --secondary-foreground: 215 80% 44%;
+    --muted: 216 33% 97%;
+    --muted-foreground: 219 13% 49%;
+    --accent: 214 100% 96%;
+    --accent-foreground: 215 80% 44%;
+    --destructive: 0 70% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 29% 92%;
+    --input: 216 29% 89%;
+    --ring: 215 88% 57%;
+    --radius: 0.8rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-canvas font-sans text-body-text;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink;
+  }
+}
+
+@layer components {
+  /* Small spaced uppercase label that opens every page (brief, section 2). */
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-brand;
+  }
+  /* Page titles are bold and end with a blue dot, e.g. "Proyek Penelitian." */
+  .page-title {
+    @apply text-3xl font-extrabold tracking-tight text-ink md:text-4xl;
+  }
+  .card-surface {
+    @apply rounded-card border border-line bg-white shadow-card;
+  }
+}
