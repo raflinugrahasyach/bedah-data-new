@@ -25,6 +25,17 @@ export const authConfig = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      try {
+        const parsed = new URL(url);
+        if (parsed.hostname.includes("localhost") && !baseUrl.includes("localhost")) {
+          return `${baseUrl}${parsed.pathname}${parsed.search}`;
+        }
+        if (parsed.origin === baseUrl) return url;
+      } catch {}
+      return baseUrl;
+    },
   },
   providers: [], // Configured with credentials and db in auth.ts
 } satisfies NextAuthConfig;

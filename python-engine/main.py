@@ -30,11 +30,14 @@ app.add_middleware(
 # ───────────── Helper Functions ─────────────
 
 def read_dataset_file(file_path: str, sheet_name: Optional[str] = None) -> pd.DataFrame:
-    """Reads CSV, XLSX, or XLS into a pandas DataFrame."""
-    if not os.path.exists(file_path):
+    """Reads CSV, XLSX, or XLS into a pandas DataFrame from local path or remote URL."""
+    is_url = file_path.startswith(("http://", "https://"))
+    if not is_url and not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail=f"Dataset file not found at: {file_path}")
 
-    ext = os.path.splitext(file_path)[1].lower()
+    # Determine extension without query string if URL
+    clean_path = file_path.split("?")[0]
+    ext = os.path.splitext(clean_path)[1].lower()
     if ext == ".sav":
         raise HTTPException(
             status_code=400,
@@ -55,10 +58,14 @@ def read_dataset_file(file_path: str, sheet_name: Optional[str] = None) -> pd.Da
         else:
             df = pd.read_excel(file_path)
     else:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Format file '{ext}' tidak didukung. Hanya CSV, XLSX, dan XLS yang diizinkan.",
-        )
+        # Fallback attempt as CSV if extension is not clear
+        try:
+            df = pd.read_csv(file_path)
+        except Exception:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Format file '{ext}' tidak didukung. Hanya CSV, XLSX, dan XLS yang diizinkan.",
+            )
 
     # Sanitize column names: strip whitespace
     df.columns = [str(col).strip() for col in df.columns]

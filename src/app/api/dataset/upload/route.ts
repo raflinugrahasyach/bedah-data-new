@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import * as XLSX from "xlsx";
 import fs from "fs/promises";
 import path from "path";
+import os from "os";
 
 export const dynamic = "force-dynamic";
 
@@ -188,9 +189,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 7. Save Raw File to Local Storage (isolated per user)
-    const userDir = path.resolve(process.cwd(), "storage", "datasets", session.user.id);
-    await fs.mkdir(userDir, { recursive: true });
+    // 7. Save Raw File to Storage (with serverless /tmp fallback for Vercel)
+    let userDir = path.resolve(process.cwd(), "storage", "datasets", session.user.id);
+    try {
+      await fs.mkdir(userDir, { recursive: true });
+    } catch {
+      userDir = path.resolve(os.tmpdir(), "storage", "datasets", session.user.id);
+      await fs.mkdir(userDir, { recursive: true });
+    }
 
     const safeBaseName = path
       .basename(originalName, ext)

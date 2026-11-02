@@ -48,12 +48,10 @@ export function LoginView() {
         setLoading(false);
       } else {
         // Successful login, determine redirect based on email or fetch session
-        if (submitEmail.includes("admin")) {
-          router.push("/admin");
-        } else {
-          router.push(callbackUrl);
-        }
-        router.refresh();
+        const target = submitEmail.includes("admin")
+          ? "/admin"
+          : (callbackUrl && callbackUrl.startsWith("/") && callbackUrl !== "/login" ? callbackUrl : "/dashboard");
+        window.location.href = target;
       }
     } catch (err) {
       setErrorMsg("Terjadi kendala pada sistem. Silakan coba sesaat lagi.");
