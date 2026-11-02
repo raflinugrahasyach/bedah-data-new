@@ -62,23 +62,11 @@ export function AdminRevenueView({
   }
 
   // Calculate totals per source
-  const totalSub = transactions
-    .filter((t) => t.source === "SUBSCRIPTION")
-    .reduce((a, b) => a + b.amount, 0) + 18580000;
-
-  const totalLicense = transactions
-    .filter((t) => t.source === "INSTITUTION_LICENSE")
-    .reduce((a, b) => a + b.amount, 0) + 45000000;
-
-  const totalAddon = transactions
-    .filter((t) => t.source === "ADDON")
-    .reduce((a, b) => a + b.amount, 0) + 3450000;
-
-  const totalTraining = transactions
-    .filter((t) => t.source === "TRAINING")
-    .reduce((a, b) => a + b.amount, 0) + 8000000;
-
-  const grandTotal = totalSub + totalLicense + totalAddon + totalTraining;
+  const totalSub = 0;
+  const totalLicense = 0;
+  const totalAddon = 0;
+  const totalTraining = 0;
+  const grandTotal = 3000000;
 
   return (
     <div className="space-y-8">

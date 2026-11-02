@@ -77,7 +77,7 @@ export function Sidebar({ projectCount = 4 }: SidebarProps) {
     <aside className="w-64 bg-white border-r border-[#e9edf3] flex flex-col h-screen sticky top-0 shrink-0 z-30 select-none">
       {/* Top Logo */}
       <div className="p-5 pb-4 border-b border-[#f0f3f8]">
-        <BrandLogo size="md" href="/dashboard" />
+        <BrandLogo size="lg" href="/dashboard" />
       </div>
 
       {/* Workspace Switcher */}

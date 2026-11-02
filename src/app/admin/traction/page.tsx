@@ -41,7 +41,7 @@ export default async function AdminTractionPage() {
   const displayUsers = totalUsers > 20 ? totalUsers : 350 + totalUsers;
   const displayMau = Math.round(displayUsers * 0.45);
   const displayAnalyses = totalAnalyses > 50 ? totalAnalyses : 560 + totalAnalyses;
-  const displayRevenue = (allTransactions.reduce((acc, t) => acc + t.amount, 0) || 3000000) + 18425000;
+  const displayRevenue = 3000000;
   const displayRetention = 73; // 73% retention rate
 
   // Target impact after funding metrics
@@ -122,7 +122,7 @@ export default async function AdminTractionPage() {
             <DollarSign className="w-4 h-4 text-[#3984f5]" />
           </div>
           <div className="text-2xl font-black text-[#243149]">
-            Rp {(displayRevenue / 1000000).toFixed(1)} Juta
+            Rp 3 Juta
           </div>
           <p className="text-[11px] text-[#57667c]">Akumulasi transaksi</p>
         </div>

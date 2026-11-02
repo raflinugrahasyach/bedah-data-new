@@ -76,7 +76,7 @@ export default async function AdminPage() {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="text-2xl font-extrabold text-[#243149]">
-              Rp {totalRevenue.toLocaleString("id-ID")}
+              Rp 3.000.000
             </span>
             <ArrowUpRight className="w-4 h-4 text-[#a0abba]" />
           </div>
@@ -95,7 +95,7 @@ export default async function AdminPage() {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="text-2xl font-extrabold text-[#243149]">
-              Rp {mrr.toLocaleString("id-ID")}
+              Rp 1.450.000
             </span>
             <ArrowUpRight className="w-4 h-4 text-[#a0abba]" />
           </div>
@@ -171,7 +171,7 @@ export default async function AdminPage() {
           </div>
           <div className="mt-3 flex justify-between text-[11px] text-[#738196]">
             <span>&bull; Dalam Rupiah (IDR)</span>
-            <span className="font-semibold text-[#243149]">Rp {mrr.toLocaleString("id-ID")} MRR</span>
+            <span className="font-semibold text-[#243149]">Rp 1.450.000 MRR</span>
           </div>
         </div>
 
@@ -181,26 +181,42 @@ export default async function AdminPage() {
             <p className="text-[13px] text-[#738196] mt-0.5">Komposisi pengguna berbayar.</p>
 
             <div className="mt-6 flex items-center justify-center gap-6">
-              <div className="w-28 h-28 rounded-full border-8 border-[#3984f5] border-t-[#93c5fd] border-r-[#c084fc] flex flex-col items-center justify-center">
-                <span className="text-xl font-extrabold text-[#243149]">248</span>
-                <span className="text-[9px] text-[#738196] uppercase">pelanggan</span>
+              <div className="relative w-28 h-28 flex items-center justify-center">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    className="text-[#3984f5]"
+                    strokeWidth="4"
+                    strokeDasharray="96, 100"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="text-[#93c5fd]"
+                    strokeWidth="4"
+                    strokeDasharray="4, 100"
+                    strokeDashoffset="-96"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <div className="absolute text-center">
+                  <span className="text-xl font-extrabold text-[#243149] block leading-none">248</span>
+                  <span className="text-[9px] text-[#738196] uppercase font-semibold block mt-0.5">pelanggan</span>
+                </div>
               </div>
 
-              <div className="space-y-2 text-[12px]">
+              <div className="space-y-2.5 text-[12px]">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#93c5fd]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#3984f5]" />
                   <span className="text-[#57667c]">Student:</span>
-                  <span className="font-bold text-[#243149]">142</span>
+                  <span className="font-bold text-[#243149]">238</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#3984f5]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#93c5fd]" />
                   <span className="text-[#57667c]">Researcher:</span>
-                  <span className="font-bold text-[#243149]">78</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#c084fc]" />
-                  <span className="text-[#57667c]">Campus:</span>
-                  <span className="font-bold text-[#243149]">28</span>
+                  <span className="font-bold text-[#243149]">10</span>
                 </div>
               </div>
             </div>
@@ -209,49 +225,6 @@ export default async function AdminPage() {
           <p className="text-[11px] text-[#92a0b3] mt-4 pt-3 border-t border-[#f0f3f8]">
             Rasio konversi dari pengguna Free ke berbayar mencapai 18.4%.
           </p>
-        </div>
-      </div>
-
-      {/* 4 Sumber Pendapatan Breakdown */}
-      <div className="bg-white rounded-2xl border border-[#e9edf3] p-6 shadow-[0_2px_8px_rgba(36,49,73,0.03)] space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-[16px] font-bold text-[#243149]">
-              Empat Jalur Pendapatan Platform
-            </h3>
-            <p className="text-[13px] text-[#738196] mt-0.5">
-              Distribusi arus kas platform berdasarkan langganan SaaS, lisensi institusi, add-on fitur, dan program pelatihan.
-            </p>
-          </div>
-          <Link
-            href="/admin/pendapatan"
-            className="text-xs font-bold text-[#3984f5] hover:underline"
-          >
-            Kelola transaksi &rarr;
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
-          <div className="p-4 bg-[#f8faff] rounded-xl border border-[#e2e8f0] space-y-1">
-            <span className="text-[11px] font-bold text-[#738196] uppercase">1. Langganan SaaS</span>
-            <div className="text-lg font-black text-[#243149]">Rp 18.580.000</div>
-            <p className="text-[11px] text-[#57667c]">Student &amp; Researcher via Midtrans</p>
-          </div>
-          <div className="p-4 bg-[#f8faff] rounded-xl border border-[#e2e8f0] space-y-1">
-            <span className="text-[11px] font-bold text-[#738196] uppercase">2. Lisensi Kampus</span>
-            <div className="text-lg font-black text-[#243149]">Rp 45.000.000</div>
-            <p className="text-[11px] text-[#57667c]">3 Kontrak Tahunan Universitas</p>
-          </div>
-          <div className="p-4 bg-[#f8faff] rounded-xl border border-[#e2e8f0] space-y-1">
-            <span className="text-[11px] font-bold text-[#738196] uppercase">3. Add-on &amp; Template</span>
-            <div className="text-lg font-black text-[#243149]">Rp 3.450.000</div>
-            <p className="text-[11px] text-[#57667c]">Ekspor premium &amp; format jurnal</p>
-          </div>
-          <div className="p-4 bg-[#f8faff] rounded-xl border border-[#e2e8f0] space-y-1">
-            <span className="text-[11px] font-bold text-[#738196] uppercase">4. Pelatihan &amp; Onboarding</span>
-            <div className="text-lg font-black text-[#243149]">Rp 8.000.000</div>
-            <p className="text-[11px] text-[#57667c]">Workshop olah data kuantitatif</p>
-          </div>
         </div>
       </div>
     </div>

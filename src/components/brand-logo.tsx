@@ -3,28 +3,36 @@ import Link from "next/link";
 
 interface BrandLogoProps {
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   href?: string;
 }
 
 export function BrandLogo({ className = "", size = "md", href = "/" }: BrandLogoProps) {
+  const sizeClasses = {
+    sm: "h-7 w-auto",
+    md: "h-9 w-auto sm:h-10",
+    lg: "h-11 w-auto sm:h-12",
+    xl: "h-14 w-auto",
+  };
+
   const dimensions = {
-    sm: { width: 130, height: 32 },
-    md: { width: 165, height: 40 },
-    lg: { width: 200, height: 48 },
+    sm: { width: 168, height: 28 },
+    md: { width: 216, height: 36 },
+    lg: { width: 264, height: 44 },
+    xl: { width: 312, height: 52 },
   };
 
   const { width, height } = dimensions[size];
 
   const content = (
-    <div className={`flex items-center gap-2 select-none ${className}`}>
+    <div className={`flex items-center select-none ${className}`}>
       <Image
         src="/brand/logo-color.png"
         alt="Bedah Data"
         width={width}
         height={height}
         priority
-        className="h-auto w-auto object-contain max-h-[38px]"
+        className={`${sizeClasses[size]} max-w-full object-contain`}
       />
     </div>
   );
